@@ -87,7 +87,7 @@ CONFIGURATION
   All plugin configuration is done in a single XML file (core-site.xml) with <name><value> tags in each <property>
   block.
 
-  Brief explanation of the tunables and the values they accepted are mentioned below
+  Brief explanation of the tunables and the values they accept (change them where-ever needed) are mentioned below
 
   name:  fs.glusterfs.impl
   value: org.apache.hadoop.fs.glusterfs.GlusterFileSystem
@@ -102,6 +102,12 @@ CONFIGURATION
          to create file URI; but is not used by plugin.
 
   name:  fs.glusterfs.volname
+  value: volume-dist-rep
+
+         The volume to mount.
+
+
+  name:  fs.glusterfs.mount
   value: /mnt/glusterfs
 
          This is the directory that the plugin will use to mount (FUSE mount) the volume.
