@@ -55,8 +55,8 @@ INSTALLATION
   See the plugin documentation for installing from RPM.
 
 
-CLUSTER INSTLLATION
--------------------
+CLUSTER INSTALLATION
+--------------------
 
   In case it is tedious to do the above steps(s) on all hosts in the cluster; use the build-and-deploy.py script to
   build the plugin in one place and deploy it (along with the configuration file on all other hosts).
@@ -137,7 +137,7 @@ USAGE
   # cd $HADOOP_HOME
   # ./bin/start-mapred.sh
 
-  If the map/reduce job/task trackers are up; all I/O will be done to GlusterFS.
+  If the map/reduce job/task trackers are up, all I/O will be done to GlusterFS.
 
 
 FOR HACKERS
