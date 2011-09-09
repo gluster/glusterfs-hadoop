@@ -68,7 +68,7 @@ def build_jar():
 
     if location == None:
         print "Cannot find maven to build glusterfs hadoop jar"
-        print "please install mavem or if it's already installed then fix your PATH environ"
+        print "please install maven or if it's already installed then fix your PATH environ"
         return None
 
     # do a clean packaging
@@ -125,6 +125,8 @@ def deployInSlave(f, confdir, libdir, cc, cm, he):
 
         print "<<< Done\n"
 
+    sf.close()
+
 def deployInMaster(f, confdir, libdir):
     import socket
     masterfile = confdir + "masters"
@@ -150,6 +152,8 @@ def deployInMaster(f, confdir, libdir):
             rcopy(f, h, libdir)
 
         print "<<< Done\n"
+
+    mf.close()
 
 if __name__ == '__main__':
     opt = args = []
