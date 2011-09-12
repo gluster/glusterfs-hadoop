@@ -123,7 +123,7 @@ CONFIGURATION
 
          NOTE: This option is not tested as of now.
 
-         This is a performance tubale option. Hadoop schedules jobs to hosts that contain the file data part. The job
+         This is a performance tunable option. Hadoop schedules jobs to hosts that contain the file data part. The job
          then does I/O on the file (via FUSE in case of GlusterFS). When this option is set, the plugin will try to
          do I/O directly from the backed filesystem (ext3, ext4 etc..) the file resides on. Hence read performance
          will improve and job would run faster.
