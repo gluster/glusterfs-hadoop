@@ -35,8 +35,6 @@ public class GlusterFSXattr {
 	public enum LAYOUT { D, S, R, DS, DR, SR, DSR }
         public enum CMD { GET_HINTS, GET_REPLICATION, GET_BLOCK_SIZE, CHECK_FOR_QUICK_IO }
 
-        private static String hostname;
-
         public GlusterFSXattr() { }
 
         public static String brick2host (String brick)
