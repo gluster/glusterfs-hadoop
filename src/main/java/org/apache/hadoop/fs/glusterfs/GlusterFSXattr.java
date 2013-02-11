@@ -37,7 +37,7 @@ public class GlusterFSXattr {
 
         public GlusterFSXattr() { }
 
-        public static String brick2host (String brick)
+        public String brick2host (String brick)
         throws IOException {
                 String[] hf = null;
 
@@ -50,7 +50,7 @@ public class GlusterFSXattr {
                 return hf[0];
         }
 
-        public static String brick2file (String brick)
+        public String brick2file (String brick)
         throws IOException {
                 String[] hf = null;
 
@@ -63,7 +63,7 @@ public class GlusterFSXattr {
                 return hf[1];
         }
 
-        public static BlockLocation[] getPathInfo (String filename, long start, long len)
+        public BlockLocation[] getPathInfo (String filename, long start, long len)
                 throws IOException {
                 HashMap<String, ArrayList<String>> vol = null;
                 HashMap<String, Integer> meta          = new HashMap<String, Integer>();
@@ -73,7 +73,7 @@ public class GlusterFSXattr {
                 return getHints(vol, meta, start, len, null);
         }
 
-        public static long getBlockSize (String filename)
+        public long getBlockSize (String filename)
                 throws IOException {
                 HashMap<String, ArrayList<String>> vol = null;
                 HashMap<String, Integer> meta          = new HashMap<String, Integer>();
@@ -87,7 +87,7 @@ public class GlusterFSXattr {
 
         }
 
-        public static short getReplication (String filename)
+        public short getReplication (String filename)
                 throws IOException {
                 HashMap<String, ArrayList<String>> vol = null;
                 HashMap<String, Integer> meta          = new HashMap<String, Integer>();
@@ -98,7 +98,7 @@ public class GlusterFSXattr {
 
         }
 
-        public static TreeMap<Integer, GlusterFSBrickClass> quickIOPossible (String filename, long start,
+        public TreeMap<Integer, GlusterFSBrickClass> quickIOPossible (String filename, long start,
                                                                              long len)
                 throws IOException {
                 String                   realpath      = null;
@@ -116,7 +116,7 @@ public class GlusterFSXattr {
                 return hnts;
         }
 
-        public static HashMap<String, ArrayList<String>> execGetFattr (String filename,
+        public HashMap<String, ArrayList<String>> execGetFattr (String filename,
                                                                        HashMap<String, Integer> meta,
                                                                        CMD cmd)
                 throws IOException {
@@ -232,7 +232,7 @@ public class GlusterFSXattr {
                 return vol;
         }
 
-        static BlockLocation[] getHints (HashMap<String, ArrayList<String>> vol,
+        BlockLocation[] getHints (HashMap<String, ArrayList<String>> vol,
                                          HashMap<String, Integer> meta,
                                          long start, long len,
                                          TreeMap<Integer, GlusterFSBrickClass> hnts)
@@ -444,7 +444,7 @@ public class GlusterFSXattr {
         }
 
         /* TODO: use meta{dcount,scount,rcount} for checking */
-        public static int getReplicationFromLayout (HashMap<String, ArrayList<String>> vol,
+        public int getReplicationFromLayout (HashMap<String, ArrayList<String>> vol,
                                                     HashMap<String, Integer> meta)
                 throws IOException {
                 int replication = 0;
