@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 
 public class GlusterFSXattr {
@@ -35,7 +36,13 @@ public class GlusterFSXattr {
 	public enum LAYOUT { D, S, R, DS, DR, SR, DSR }
         public enum CMD { GET_HINTS, GET_REPLICATION, GET_BLOCK_SIZE, CHECK_FOR_QUICK_IO }
 
-        public GlusterFSXattr() { }
+        private String getFattrCmdBase;
+
+        public GlusterFSXattr(Configuration conf) {
+                getFattrCmdBase =
+                        conf.get("fs.glusterfs.getfattrcmd",
+                                 "getfattr -m . -n trusted.glusterfs.pathinfo");
+        }
 
         public String brick2host (String brick)
         throws IOException {
@@ -137,7 +144,7 @@ public class GlusterFSXattr {
 
                 HashMap<String, ArrayList<String>> vol = new HashMap<String, ArrayList<String>>();
 
-                getfattrCmd = "getfattr -m . -n trusted.glusterfs.pathinfo " + filename;
+                getfattrCmd = this.getFattrCmdBase + " " + filename;
 
                 p = Runtime.getRuntime().exec(getfattrCmd);
                 brInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
