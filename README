@@ -147,16 +147,17 @@ USAGE
 FOR HACKERS
 -----------
 
-* Source Layout
+* Source Layout (./src/)
 
-./src/org/apache/hadoop/fs/glusterfs/GlusterFSBrickClass.java
-./src/org/apache/hadoop/fs/glusterfs/GlusterFSXattr.java            <--- Fetch/Parse Extended Attributes of a file
-./src/org/apache/hadoop/fs/glusterfs/GlusterFUSEInputStream.java    <--- Input Stream (instantiated during open() calls; quick read from backed FS)
-./src/org/apache/hadoop/fs/glusterfs/GlusterFSBrickRepl.java
-./src/org/apache/hadoop/fs/glusterfs/GlusterFUSEOutputStream.java   <--- Output Stream (instantiated during creat() calls)
-./src/org/apache/hadoop/fs/glusterfs/GlusterFileSystem.java         <--- Entry Point for the plugin (extends Hadoop FileSystem class)
+org.apache.hadoop.fs.glusters/GlusterFSBrickClass.java
+org.apache.hadoop.fs.glusters/GlusterFSXattr.java            <--- Fetch/Parse Extended Attributes of a file
+org.apache.hadoop.fs.glusters/GlusterFUSEInputStream.java    <--- Input Stream (instantiated during open() calls; quick read from backed FS)
+org.apache.hadoop.fs.glusters/GlusterFSBrickRepl.java
+org.apache.hadoop.fs.glusters/GlusterFUSEOutputStream.java   <--- Output Stream (instantiated during creat() calls)
+org.apache.hadoop.fs.glusters/GlusterFileSystem.java         <--- Entry Point for the plugin (extends Hadoop FileSystem class)
 
-./src/org/gluster/test/AppTest.java                  <--- Your test cases go here (if any :-))
+org.gluster.test.AppTest.java                  <--- Your test cases go here (if any :-))
+
 ./tools/build-deploy-jar.py                                                  <--- Build and Deployment Script
 ./conf/core-site.xml                                                         <--- Sample configuration file
 ./pom.xml                                                                    <--- build XML file (used by maven)
