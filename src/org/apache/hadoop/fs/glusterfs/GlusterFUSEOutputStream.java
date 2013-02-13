@@ -84,4 +84,3 @@ public class GlusterFUSEOutputStream extends OutputStream {
                 closed = true;
         }
 }
-

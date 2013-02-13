@@ -363,7 +363,6 @@ public class GlusterFileSystem extends FileSystem {
                         String newPath = absoluteDst.toUri().getPath() + "/" + fSrc.getName();
                         fDst = new File(newPath);
                 }
-                        
                 return fSrc.renameTo(fDst);
         }
 

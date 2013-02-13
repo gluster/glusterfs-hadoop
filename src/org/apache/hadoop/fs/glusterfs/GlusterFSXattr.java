@@ -111,7 +111,7 @@ public class GlusterFSXattr {
                 vol = execGetFattr(filename, meta, CMD.GET_HINTS);
                 getHints(vol, meta, start, len, hnts);
 
-                if (hnts.size() == 0) 
+                if (hnts.size() == 0)
                         return null; // BOOM !!
 
                 // DEBUG - dump hnts here
@@ -148,8 +148,17 @@ public class GlusterFSXattr {
                 while ( (s = brInput.readLine()) != null )
                         cmdOut += s;
 
-                Pattern pattern = Pattern.compile("<(.*?):(.*?)>");
+                /**
+                 * TODO: Use a single regex for extracting posix paths as well
+                 * as xlator counts for layout matching.
+                 */
+
+                Pattern pattern = Pattern.compile("<(.*?)[:\\(](.*?)>");
                 Matcher matcher = pattern.matcher(cmdOut);
+
+                Pattern p_px = Pattern.compile(".*?:(.*)");
+                Matcher m_px;
+                String gibberish_path;
 
                 s = null;
                 while (matcher.find()) {
@@ -169,8 +178,14 @@ public class GlusterFSXattr {
                                 if (vol.get(key) == null)
                                         vol.put(key, new ArrayList<String>());
 
-                                vol.get(key).add(matcher.group(2));
+                                gibberish_path = matcher.group(2);
 
+                                /* extract posix path from the gibberish string */
+                                m_px = p_px.matcher(gibberish_path);
+                                if (!m_px.find())
+                                        throw new IOException("Cannot extract posix path");
+
+                                vol.get(key).add(m_px.group(1));
                                 continue;
                         }
 
@@ -258,7 +273,6 @@ public class GlusterFSXattr {
                                 result[0] = new BlockLocation(null, new String[] {brick2host(brick)}, start, len);
                         } else
                                 hnts.put(0, new GlusterFSBrickClass(brick, start, len, false, -1, -1, -1));
-                                
                         break;
 
                 case R:
@@ -313,7 +327,6 @@ public class GlusterFSXattr {
                                 }
                         }
 
-                        rsize = replicas.get(0).size();
                         stripeSize = meta.get("block-size");
 
                         nrAllocs = (int) (((len - start) / stripeSize) + 1);
@@ -335,6 +348,8 @@ public class GlusterFSXattr {
                                         stripeEnd = start + len - 1;
                                         done = true;
                                 }
+
+                                rsize = replicas.get(counter).size();
 
                                 if (hnts == null)
                                         repl[allocCtr] = new GlusterFSBrickRepl(rsize, stripeStart, (stripeEnd - stripeStart));
