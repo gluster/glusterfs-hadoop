@@ -6,15 +6,17 @@ INTRODUCTION
 
 This document describes how to use GlusterFS (http://www.gluster.org/) as a backing store with Hadoop.
 
+This plugin replaces the hadoop file system (typically, the Hadoop Distributed File System) with the 
+GlusterFileSystem, which writes to a local directory which FUSE mounts a proxy to a gluster system.
 
 REQUIREMENTS
 ------------
 
 * Supported OS is GNU/Linux
-* GlusterFS and Hadoop installed on all machines in the cluster
+* GlusterFS installed on all machines in the cluster
 * Java Runtime Environment (JRE)
-* Maven (needed if you are building the plugin from source)
-* JDK (needed if you are building the plugin from source)
+* Maven 3x (needed if you are building the plugin from source)
+* JDK 6+ (needed if you are building the plugin from source)
 
 NOTE: Plugin relies on two *nix command line utilities to function properly. They are:
 
