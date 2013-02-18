@@ -180,14 +180,16 @@ public class GlusterFUSEInputStream extends FSInputStream {
         }
 
         public synchronized void close () throws IOException {
-                if (closed)
-                        throw new IOException("Stream closed.");
-
                 super.close();
-                if (fsInputStream != null)
-                        fsInputStream.close();
+             
+                if (closed)
+                    return ;
+                
+                if (fsInputStream != null){
+                	fsInputStream.close();
+        		}
+                
                 fuseInputStream.close();
-
                 closed = true;
         }
 
