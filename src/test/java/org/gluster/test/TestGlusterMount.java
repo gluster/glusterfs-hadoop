@@ -21,8 +21,9 @@ import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
 /**
  * Unit test for simple App.
  */
-public class GlusterBasicTests{
+public class TestGlusterMount{
     
+	@org.junit.Test
     public void tesMount() throws Exception{
         GlusterFileSystem gfs = new GlusterFileSystem();
         Configuration conf = new Configuration();
