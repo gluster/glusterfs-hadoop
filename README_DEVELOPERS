@@ -1,0 +1,25 @@
+1) Development Process (two developers, brad and jay - other contributions will flow up to brad/jay in a branch) :
+
+  1) Developer team finds bug or test team finds bug.
+  
+  A bugzilla bug is created under bugzilla.redhat.com, for the project: RedHat Storage, Component: glusterfs-hadoop
+ 
+  2) Developer X accepts bug. 
+
+  3) Developer X creates Branch named BZ_____ for the bug, where _____ = the ID of the bug: 
+
+     For example: git branch $ git branch --track BZ11111 origin/master
+
+  4) Developer X writes test for the bug, commits and pushes to branch - build should fail at this point.
+
+  5) Developer X writes the fix for the bug, runs test locally, confirms build passes, and again pushes. 
+
+  6) Developer Y confirms fix
+
+  7) Developer Y merges branch BZ______ with HEAD, and in the same step , confirms that build passes on build.gluster.org
+
+     If build fails, the merge is reverted. 
+
+2) ECLIPSE SETUP 
+
+  TBD
