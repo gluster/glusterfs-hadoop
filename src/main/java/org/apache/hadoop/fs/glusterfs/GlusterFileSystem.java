@@ -70,6 +70,29 @@ public class GlusterFileSystem extends FileSystem {
         public URI getUri () {
                 return uri;
         }
+        
+        public void close() throws IOException {
+            String mountCmd = "umount " + this.glusterMount;
+            boolean ret = true;
+            int retVal = 0;
+            Process p = null;
+
+            try {
+                p = Runtime.getRuntime().exec(mountCmd);
+                retVal = p.waitFor();
+                if (retVal != 0)
+                    ret = false;
+
+            } catch (InterruptedException e) {
+                System.out.println("Problem unmounting FUSE : " + this.glusterMount);
+                e.printStackTrace();
+                System.exit(-1);
+
+            } finally {
+                super.close();
+            }
+
+        }
 
         public boolean FUSEMount (String volname, String server, String mount)
                 throws IOException, InterruptedException  {
@@ -80,7 +103,7 @@ public class GlusterFileSystem extends FileSystem {
                 String         mountCmd = null;
 
                 mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " " + mount;
-
+                System.out.println("Running: " + mountCmd);
                 try {
                         p = Runtime.getRuntime().exec(mountCmd);
 
@@ -275,12 +298,22 @@ public class GlusterFileSystem extends FileSystem {
                 if (!f.exists ())
                         throw new FileNotFoundException("File " + f.getPath() + " does not exist.");
 
+                FileStatus fs;
+                //simple version - should work . we'll see.
                 if (f.isDirectory ())
-                        return new FileStatus(0, true, 1, 0, f.lastModified(), path.makeQualified(this));
+                        fs= new FileStatus(0, true, 1, 0, f.lastModified(), path.makeQualified(this)){
+		        			public String getOwner(){
+		        				return "root";
+		        			}
+                		};
                 else
-                        return new FileStatus(f.length(), false, 0, getDefaultBlockSize(),
-                                              f.lastModified(), path.makeQualified(this));
-
+                        fs=new FileStatus(f.length(), false, 0, getDefaultBlockSize(),
+                                              f.lastModified(), path.makeQualified(this)){
+                			public String getOwner(){
+                				return "root";
+                			}
+                		};
+                return fs;
         }
 
         /*
