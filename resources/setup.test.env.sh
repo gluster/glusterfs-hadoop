@@ -25,7 +25,7 @@ print_help() {
     echo " -v, --volume <gluster volume>	gluster volume to create"
     echo " -h, --help               		show this message"
     echo ""
-    echo "Note: bricks and gluster volume will not persist on reboot.  Please edit fstab manually if you wish.*/
+    echo "Note: bricks and gluster volume will not persist on reboot.  Please edit fstab manually if you wish."
 }
 
 # parse options
