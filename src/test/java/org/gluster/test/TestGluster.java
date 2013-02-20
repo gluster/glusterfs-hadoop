@@ -1,3 +1,29 @@
+/**
+ *
+ * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
+ * This file is part of GlusterFS.
+ *
+ * Licensed under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ *
+ *
+ * Base test class for GlusterFS + hadoop testing.  
+ * Requires existing/working gluster volume named "hadoop-gluster".
+ * 
+ * The default volume name can be overridden with env variable gluster-volume
+ *
+ */
+
+
 package org.gluster.test;
 
 
@@ -18,30 +44,43 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
+import org.apache.tools.ant.util.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 
 
 /**
- * Unit test for simple App.
+ * Unit test for simple Gluster FS + Hadoop shim test.
+ * 
  */
-public class TestGlusterMount{
+public class TestGluster{
 	
 	protected File tempDirectory;
 	protected String glusterVolume="hadoop-gluster";
     protected GlusterFileSystem gfs;
+	private File temp;
+	private File mount;
 
+	@After
+	public void after(){
+		FileUtils.delete(tempDirectory);
+	}
+	
     @Before
 	public void before() throws Exception{
+    	/* the user can over ride the default gluster volume used for test with ENV var */
 		glusterVolume = System.getProperty("gluster-volume");		
-		tempDirectory =  File.createTempFile("temp", Long.toString(System.nanoTime()));
+		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
+
+		tempDirectory.mkdirs();
+		tempDirectory.delete();
+		tempDirectory.mkdir();
 		
 		if(glusterVolume==null){
 			glusterVolume="hadoop-gluster";
 		}
 		
-		tempDirectory.mkdirs();
-		tempDirectory.deleteOnExit();
+		
 		
         gfs = new GlusterFileSystem();
         Configuration conf = new Configuration();
@@ -55,15 +94,11 @@ public class TestGlusterMount{
 			e.printStackTrace();
 		}
         String hostname = addr.getHostName();	
-        File temp = new File(tempDirectory, "hadoop-temp");
-    	File mount = new File(tempDirectory, "mount");
-    
-    	temp.mkdirs();
-		mount.mkdirs();
-		temp.delete();
-		temp.mkdir();
-		mount.delete();
-		mount.mkdir();
+        this.temp = new File(tempDirectory, "hadoop-temp");
+    	this.mount = new File(tempDirectory, "mount");
+    	temp.mkdir();
+    	mount.mkdir();
+    	
 		
        
         conf.set("fs.glusterfs.volname", glusterVolume);
@@ -81,7 +116,7 @@ public class TestGlusterMount{
 	}
 	
 	@org.junit.Test
-	public void testTextWrite(){
+	public void testTextWriteAndRead(){
         String testString = "Is there anyone out there?";
         String readChars = null;
         

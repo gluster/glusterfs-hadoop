@@ -1,13 +1,31 @@
-
+#* Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
+#  This file is part of GlusterFS.
+#
+#  Licensed under the Apache License, Version 2.0
+#  (the "License"); you may not use this file except in compliance with
+#  the License. You may obtain a copy of the License at
+#
+#  http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+#  implied. See the License for the specific language governing
+#  permissions and limitations under the License.
+#
+# This script creates a gluster volume using block files mounted on loopback as bricks.
+# The puprose is to allow scripted create and delete of gluster volumes without needing to alter
+# disk partition or volume structure.
 
 print_help() {
     echo "Usage: $0 [OPTION]..."
     echo ""
     echo "Options:"
-    echo " -w, --work <directory>   		working directory for gluster bricks"
+    echo " -w, --work <directory>   		working directory for gluster block device bricks"
     echo " -v, --volume <gluster volume>	gluster volume to create"
     echo " -h, --help               		show this message"
     echo ""
+    echo "Note: bricks and gluster volume will not persist on reboot.  Please edit fstab manually if you wish.*/
 }
 
 # parse options
@@ -40,7 +58,7 @@ then
 	exit 1;
 fi
 
-if  [ ! -z ${WORK_DIR} ] 
+if  [ -z ${WORK_DIR} ] 
 then
     echo "I am error. No temp directory set."
     echo ""
