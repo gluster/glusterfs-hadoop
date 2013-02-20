@@ -274,12 +274,24 @@ public class GlusterFileSystem extends FileSystem {
 
                 if (!f.exists ())
                         throw new FileNotFoundException("File " + f.getPath() + " does not exist.");
-
+                FileStatus fs;
+                //simple version - should work . we'll see.
                 if (f.isDirectory ())
-                        return new FileStatus(0, true, 1, 0, f.lastModified(), path.makeQualified(this));
+                        fs= new FileStatus(0, true, 1, 0, f.lastModified(), path.makeQualified(this)){
+		        			@Override
+                			public String getOwner(){
+		        				return "root";
+		        			}
+                		};
                 else
-                        return new FileStatus(f.length(), false, 0, getDefaultBlockSize(),
-                                              f.lastModified(), path.makeQualified(this));
+                        fs=new FileStatus(f.length(), false, 0, getDefaultBlockSize(),
+                                              f.lastModified(), path.makeQualified(this)){
+                			@Override
+                			public String getOwner(){
+                				return "root";
+                			}
+                		};
+                return fs;
 
         }
 
