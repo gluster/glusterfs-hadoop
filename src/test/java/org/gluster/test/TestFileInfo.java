@@ -20,5 +20,16 @@ public class TestFileInfo {
 		System.out.println("Confirming -- \nuser.name(" + user +")=owner("+owner+")");
 		Assert.assertEquals(user,owner);
 	}
+
+	
+	@Test
+	public void test2(){
+
+		String t = "drwxr-xr-x 2 root root 8198 Feb 21 20:29 ./";
+		String[] vals = t.split("\\s+");
+		for(int i = 0 ; i < vals.length; i++){
+			System.out.println(i + " " + vals[i]);
+		}
+	}
 }
 

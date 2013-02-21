@@ -33,7 +33,11 @@ public class FileInfoUtil {
 			try {
 				//should only be one line if input is a file
 				while ((ls_str = ls_in.readLine()) != null) {
-					ret+=(ls_str);
+					if(ls_str.length()<10)
+						;
+					else{
+						ret+=(ls_str);
+					}
 				}
 			} 
 			catch (IOException e) {
