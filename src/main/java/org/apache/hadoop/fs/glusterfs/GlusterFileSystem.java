@@ -268,29 +268,52 @@ public class GlusterFileSystem extends FileSystem {
                 return getFileStatus(nPath);
         }
 
+        public static class FUSEFileStatus extends FileStatus {
+        	
+        	File theFile ;
+			public FUSEFileStatus(File f) {
+				super();
+				theFile=f;
+			}
+
+			public FUSEFileStatus(File f, boolean isdir,
+					int block_replication, long blocksize,
+					Path path) {
+				//if its a dir, 0 length
+				super(isdir?0:f.length(), isdir, 
+					  block_replication, blocksize, f.lastModified(), path);
+				theFile=f;
+			}
+        
+			/**
+			 * Wrapper to "ls -aFL" - this should fix BZ908898
+			 */
+			@Override
+			public String getOwner(){
+				try{
+					return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).get("owner");
+				}
+				catch(Exception e){
+					throw new RuntimeException(e);
+				}
+			}
+        }
+        
         public FileStatus getFileStatus (Path path) throws IOException {
                 Path absolute = makeAbsolute(path);
-                File f = new File(absolute.toUri().getPath());
+                final File f = new File(absolute.toUri().getPath());
 
                 if (!f.exists ())
                         throw new FileNotFoundException("File " + f.getPath() + " does not exist.");
                 FileStatus fs;
+                
                 //simple version - should work . we'll see.
+                //TODO COMPARE these w/ original signatures - do we retain the correct 
+                //default args?
                 if (f.isDirectory ())
-                        fs= new FileStatus(0, true, 1, 0, f.lastModified(), path.makeQualified(this)){
-		        			@Override
-                			public String getOwner(){
-		        				return "root";
-		        			}
-                		};
+                        fs= new FUSEFileStatus(f, true, 1, 0, path.makeQualified(this));
                 else
-                        fs=new FileStatus(f.length(), false, 0, getDefaultBlockSize(),
-                                              f.lastModified(), path.makeQualified(this)){
-                			@Override
-                			public String getOwner(){
-                				return "root";
-                			}
-                		};
+                        fs=new FUSEFileStatus(f, false, 0, getDefaultBlockSize(),path.makeQualified(this));
                 return fs;
 
         }
