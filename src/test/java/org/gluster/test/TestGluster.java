@@ -89,6 +89,7 @@ public class TestGluster{
         Assert.assertNotNull(conf.get("fs.glusterfs.volname"));
         Assert.assertNotNull(conf.get("fs.default.name"));
 
+        System.out.println("Confirmed that configuration properties from gluster were found , now creating dirs");
         /**
         if(glusterHost==null || "".compareTo(glusterHost)==0){
         	InetAddress addr = null;
@@ -107,6 +108,8 @@ public class TestGluster{
         conf.set("fs.glusterfs.mount",mount.getAbsolutePath());
         conf.set("quick.slave.io", "true");
         
+        System.out.println("Now initializing GlusterFS !");
+
         gfs.initialize(temp.toURI(), conf);
 	}
 	
