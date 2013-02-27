@@ -173,6 +173,10 @@ BUILDING
 Building requires a working gluster mount for unit tests. 
 The unit tests read test resources from glusterconfig.properties - a file which should be present 
 
-1) Edit src/test/java/glusterconfig.properties to match your gluster configuration.
+1) edit your .bashrc, or else at your terminal run : 
+
+export GLUSTER_VOLUME=MyVolume <-- replace with your preferred volume name (default is HadoopVol)
+export GLUSTER_HOST=192.0.1.2 <-- replace with your host (default will be determined at runtime in the JVM)
+
 2) run: 
    mvn package
