@@ -1,6 +1,6 @@
 package org.gluster.test;
 
-import java.net.URL;
+import java.io.File;
 
 import junit.framework.Assert;
 
@@ -13,16 +13,13 @@ import org.junit.Test;
  * A meta-test: confirms that we correctly loaded gluster properties.
  */
 public class TestConfiguration {
-	
-	@Before
-	public void setup(){
-		Configuration.addDefaultResource("/conf/core-site.xml");
-	}
-
 	@Test
 	public void testGlusterProperties() throws Throwable{
 		try{
-			Configuration c = new Configuration();
+			Configuration c = new Configuration(true);
+			c.addResource(new File("conf/core-site.xml").getAbsoluteFile().toURI().toURL());
+			
+			System.out.println(c);
 			Assert.assertNotNull(c.get("fs.default.name"));
 			Assert.assertNotNull(c.get("fs.glusterfs.volname"));
 			System.out.println(c.get("fs.default.name") + " , " + c.get("fs.glusterfs.volname"));
