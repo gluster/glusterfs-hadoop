@@ -83,7 +83,6 @@ public class TestGluster{
 		tempDirectory.delete();
 		tempDirectory.mkdir();
 		
-		
 		gfs = new GlusterFileSystem();
         Configuration conf = new Configuration();
         
