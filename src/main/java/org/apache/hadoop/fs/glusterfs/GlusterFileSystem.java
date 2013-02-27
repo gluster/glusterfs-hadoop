@@ -78,6 +78,7 @@ public class GlusterFileSystem extends FileSystem {
 		Process p = null;
 		String mountCmd = null;
 
+		System.out.println("server= " + server);
 		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "
 				+ mount;
 		System.out.println("Running: " + mountCmd);
