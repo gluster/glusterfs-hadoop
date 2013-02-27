@@ -34,11 +34,11 @@
 		    <systemProperties>
 				          <property>
 				             <name>GLUSTER_HOST</name>
-				             <value>${GLUSTER_VOLUME}</value>
+				             <value>${GLUSTER_HOST}</value>
 				          </property>
 				           <property>
 				             <name>GLUSTER_VOLUME</name>
-				             <value>${GLUSTER_HOST}</value>
+				             <value>${GLUSTER_VOLUME}</value>
 				          </property>
 			</systemProperties>
 		 </configuration>
