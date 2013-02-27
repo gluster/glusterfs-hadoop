@@ -75,7 +75,7 @@ public class TestGluster{
     @BeforeClass
 	public static void before() throws Exception{
     	Configuration.addDefaultResource("conf/core-site.xml");
-    	Configuration c = new Configuration();
+    	Configuration conf = new Configuration();
     	
 		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
 
@@ -84,10 +84,9 @@ public class TestGluster{
 		tempDirectory.mkdir();
 		
 		gfs = new GlusterFileSystem();
-        Configuration conf = new Configuration();
         
-        Assert.assertNotNull(c.get("fs.glusterfs.volname"));
-        Assert.assertNotNull(c.get("fs.default.name"));
+        Assert.assertNotNull(conf.get("fs.glusterfs.volname"));
+        Assert.assertNotNull(conf.get("fs.default.name"));
 
         /**
         if(glusterHost==null || "".compareTo(glusterHost)==0){
