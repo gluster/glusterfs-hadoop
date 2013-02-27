@@ -77,8 +77,10 @@ public class TestGluster{
     @BeforeClass
 	public static void before() throws Exception{
     	/* the user can over ride the default gluster volume used for test with ENV var */
-        glusterVolume= System.getProperty("gluster-volume");
-        glusterHost=System.getProperty("gluster-host"); 
+        glusterVolume= System.getProperty("GLUSTER_VOLUME");
+        glusterHost=System.getProperty("GLUSTER_HOST"); 
+        System.out.println("Testing against host:" + glusterHost);
+        System.out.println("Testing against volume:" + glusterVolume);
         
 		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
 
