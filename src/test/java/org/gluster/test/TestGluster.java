@@ -67,7 +67,7 @@ public class TestGluster{
 	private static File mount;
 
 	static {
-		Configuration.addDefaultResource("conf/core-site.xml");
+		Configuration.addDefaultResource("/conf/core-site.xml");
 	}
 
 	@After
