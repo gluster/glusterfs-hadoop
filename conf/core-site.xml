@@ -12,12 +12,12 @@
 
   <property>
     <name>fs.default.name</name>
-    <value>glusterfs://192.168.1.36:9000</value>
+    <value>glusterfs://RHS-1:9000</value>
   </property>
 
   <property>
     <name>fs.glusterfs.volname</name>
-    <value>volume-dist-rep</value>
+    <value>HadoopVol</value>
   </property>
 
   <property>
@@ -27,7 +27,7 @@
 
   <property>
     <name>fs.glusterfs.server</name>
-    <value>192.168.1.36</value>
+    <value>RHS-1</value>
   </property>
 
   <property>

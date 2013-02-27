@@ -166,3 +166,13 @@ org.gluster.test.AppTest.java                  <--- Your test cases go here (if 
 
 ./COPYING                                                                    <--- License
 ./README                                                                     <--- This file
+
+BUILDING 
+--------
+
+Building requires a working gluster mount for unit tests. 
+The unit tests read test resources from glusterconfig.properties - a file which should be present 
+
+1) Edit src/test/java/glusterconfig.properties to match your gluster configuration.
+2) run: 
+   mvn package
