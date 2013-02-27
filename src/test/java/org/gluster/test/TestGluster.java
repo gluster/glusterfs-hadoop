@@ -59,7 +59,8 @@ import org.junit.BeforeClass;
 public class TestGluster{
 	
 	protected static File tempDirectory;
-	protected static String glusterVolume="hadoop-gluster";
+	protected static String glusterVolume= System.getProperty("gluster-volume");
+	protected static String glusterHost=System.getProperty("gluster-host"); 
     protected static GlusterFileSystem gfs;
 	private static File temp;
 	private static File mount;
@@ -70,12 +71,15 @@ public class TestGluster{
 		FileUtils.delete(tempDirectory);
 		
 		
+		
 	}
 	
     @BeforeClass
 	public static void before() throws Exception{
     	/* the user can over ride the default gluster volume used for test with ENV var */
-		glusterVolume = System.getProperty("gluster-volume");		
+        glusterVolume= System.getProperty("gluster-volume");
+        glusterHost=System.getProperty("gluster-host"); 
+        
 		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
 
 		tempDirectory.mkdirs();
@@ -90,11 +94,14 @@ public class TestGluster{
         Configuration conf = new Configuration();
         
         /* retrieve the local machines hostname */
-        InetAddress addr = null;
-		
-		addr = InetAddress.getLocalHost();
-		
-        String hostname = addr.getHostName();	
+        if(glusterHost==null || "".compareTo(glusterHost)==0){
+            InetAddress addr = null;
+            
+            addr = InetAddress.getLocalHost();
+            
+            glusterHost = addr.getHostName();   
+        }
+        
         temp = new File(tempDirectory, "hadoop-temp");
     	mount = new File(tempDirectory, "mount");
     	temp.mkdir();
@@ -102,48 +109,46 @@ public class TestGluster{
 
     	conf.set("fs.glusterfs.volname", glusterVolume);
         conf.set("fs.glusterfs.mount",mount.getAbsolutePath());
-        conf.set("fs.glusterfs.server",hostname);
+        conf.set("fs.glusterfs.server",glusterHost);
         conf.set("quick.slave.io", "true");
         
         gfs.initialize(temp.toURI(), conf);
 	}
 	
 	@org.junit.Test
-	public void testTextWriteAndRead(){
+	public void testTextWriteAndRead() throws Exception{
+	   
         String testString = "Is there anyone out there?";
         String readChars = null;
         
         
-        try {
-        	FSDataOutputStream dfsOut = null;
-        	dfsOut = gfs.create(new Path("test1.txt"));
-			dfsOut.writeUTF(testString);
-			dfsOut.close();
-        } catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        FSDataOutputStream dfsOut = null;
+        dfsOut = gfs.create(new Path("test1.txt"));
+		dfsOut.writeUTF(testString);
+		dfsOut.close();
         
-        try {
-        	FSDataInputStream dfsin = null;
+        
+        FSDataInputStream dfsin = null;
            
-			dfsin = gfs.open(new Path("test1.txt"));
-        	readChars = dfsin.readUTF();
-        	dfsin.close();
-        } catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		dfsin = gfs.open(new Path("test1.txt"));
+        readChars = dfsin.readUTF();
+        dfsin.close();
+        
         assertEquals(testString, readChars);
+        
+        gfs.delete(new Path("test1.txt"), true);
+        
+        assertFalse(gfs.exists(new Path("test1")));
     }
 	@org.junit.Test
 	public void testDirs() throws Exception {
+	   
         Path subDir1 = new Path("dir.1");
         Path baseDir = new Path("testDirs1");
         // make the dir
         gfs.mkdirs(baseDir);
         assertTrue(gfs.isDirectory(baseDir));
-        gfs.setWorkingDirectory(baseDir);
+       // gfs.setWorkingDirectory(baseDir);
 
         gfs.mkdirs(subDir1);
         assertTrue(gfs.isDirectory(subDir1));
@@ -151,6 +156,7 @@ public class TestGluster{
         assertFalse(gfs.exists(new Path("test1")));
         assertFalse(gfs.isDirectory(new Path("test/dir.2")));
 
+        
         FileStatus[] p = gfs.listStatus(baseDir);
         assertEquals(p.length, 1);
 
@@ -164,6 +170,7 @@ public class TestGluster{
 	
 	@org.junit.Test
 	 public void testFiles() throws Exception {
+	   
 	        Path subDir1 = new Path("dir.1");
 	        Path baseDir = new Path("testDirs1");
 	        Path file1 = new Path("dir.1/foo.1");
@@ -198,6 +205,7 @@ public class TestGluster{
 	    }
 
 	 public void testFileIO() throws Exception {
+	     
 	        Path subDir1 = new Path("dir.1");
 	        Path file1 = new Path("dir.1/foo.1");
 	        Path baseDir = new Path("testDirs1");
