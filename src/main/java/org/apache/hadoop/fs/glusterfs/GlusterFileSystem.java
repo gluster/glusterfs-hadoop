@@ -108,10 +108,10 @@ public class GlusterFileSystem extends FileSystem {
 		System.out.println("Initializing GlusterFS");
 
 		try {
-			volName = conf.get("fs.glusterfs.volname", "");
-			glusterMount = conf.get("fs.glusterfs.mount", "");
-			remoteGFSServer = conf.get("fs.glusterfs.server", "");
-			needQuickRead = conf.get("quick.slave.io", "");
+			volName = conf.get("fs.glusterfs.volname", null);
+			glusterMount = conf.get("fs.glusterfs.mount", null);
+			remoteGFSServer = conf.get("fs.glusterfs.server", null);
+			needQuickRead = conf.get("quick.slave.io", null);
 
 			if ((volName.length() == 0) || (remoteGFSServer.length() == 0)
 					|| (glusterMount.length() == 0))
