@@ -84,7 +84,7 @@ public class TestGluster{
     	}
         
         System.out.println("Testing against host:" + glusterHost);
-        System.out.println("Testing against volume:" + glusterVolume);
+        System.out.println("Testing against volume:" + "glusterfs://"+glusterVolume);
         
 		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
 		tempDirectory.mkdirs();
@@ -105,8 +105,8 @@ public class TestGluster{
     	conf.set("fs.glusterfs.volname", glusterVolume);
         conf.set("fs.glusterfs.mount", mount.getAbsolutePath());
         conf.set("fs.glusterfs.server", glusterHost);
+        conf.set("fs.default.name", "glusterfs://"+glusterHost+":9000");
         conf.set("quick.slave.io", "true");
-        
         gfs.initialize(temp.toURI(), conf);
 	}
     
