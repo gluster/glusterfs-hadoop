@@ -66,16 +66,20 @@ public class TestGluster{
 	private static File temp;
 	private static File mount;
 
-	@AfterClass
-	public static void after() throws IOException{
+	static {
+		Configuration.addDefaultResource("conf/core-site.xml");
+	}
+
+	@After
+	public void after() throws IOException{
 		gfs.close();
 		FileUtils.delete(tempDirectory);
 	}
 	
-    @BeforeClass
-	public static void before() throws Exception{
-    	Configuration.addDefaultResource("conf/core-site.xml");
+    @Before
+	public void before() throws Exception{
     	Configuration conf = new Configuration();
+    	conf.reloadConfiguration();
     	
 		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
 
@@ -84,7 +88,7 @@ public class TestGluster{
 		tempDirectory.mkdir();
 		
 		gfs = new GlusterFileSystem();
-        
+        System.out.println(conf);
         Assert.assertNotNull(conf.get("fs.glusterfs.volname"));
         Assert.assertNotNull(conf.get("fs.default.name"));
 

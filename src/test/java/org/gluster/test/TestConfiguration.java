@@ -24,6 +24,8 @@ public class TestConfiguration {
 		try{
 			Configuration c = new Configuration();
 			Assert.assertNotNull(c.get("fs.default.name"));
+			Assert.assertNotNull(c.get("fs.glusterfs.volname"));
+			System.out.println(c.get("fs.default.name") + " , " + c.get("fs.glusterfs.volname"));
 		}
 		catch(Throwable t){
 			t.printStackTrace();
