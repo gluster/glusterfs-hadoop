@@ -114,10 +114,13 @@ public class GlusterFileSystem extends FileSystem {
 			remoteGFSServer = conf.get("fs.glusterfs.server", null);
 			needQuickRead = conf.get("quick.slave.io", null);
 
+			System.out.println("server 0 = "+remoteGFSServer);
+			
 			if ((volName.length() == 0) || (remoteGFSServer.length() == 0)
 					|| (glusterMount.length() == 0))
 				throw new RuntimeException("Not enough info to mount FUSE: volname="+volName + " glustermount=" + glusterMount);
 
+			
 			ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			if (!ret) {
 				throw new RuntimeException("Failed to initialize GlusterFS");
@@ -140,7 +143,6 @@ public class GlusterFileSystem extends FileSystem {
 			this.hostname = addr.getHostName();
 
 			setConf(conf);
-
 		} 
 		catch (Exception e) {
 			e.printStackTrace();
