@@ -33,9 +33,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+<<<<<<< HEAD
 import java.util.Properties;
 
 import junit.framework.Assert;
+=======
+
+>>>>>>> 3515024fdffb5a2ffebde32df399923a1f8ce5ea
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -61,11 +65,17 @@ import org.junit.BeforeClass;
 public class TestGluster{
 	
 	protected static File tempDirectory;
+<<<<<<< HEAD
 	
+=======
+	protected static String glusterVolume= System.getProperty("gluster-volume");
+	protected static String glusterHost=System.getProperty("gluster-host"); 
+>>>>>>> 3515024fdffb5a2ffebde32df399923a1f8ce5ea
     protected static GlusterFileSystem gfs;
 	private static File temp;
 	private static File mount;
 
+<<<<<<< HEAD
 
 	@After
 	public void after() throws IOException{
@@ -78,12 +88,32 @@ public class TestGluster{
     	Configuration conf = new Configuration();
 		conf.addResource(new File("conf/core-site.xml").getAbsoluteFile().toURI().toURL());
     	
+=======
+	@AfterClass
+	public static void after() throws IOException{
+		gfs.close();
+		FileUtils.delete(tempDirectory);
+		
+		
+		
+	}
+	
+    @BeforeClass
+	public static void before() throws Exception{
+    	/* the user can over ride the default gluster volume used for test with ENV var */
+        glusterVolume= System.getProperty("GLUSTER_VOLUME");
+        glusterHost=System.getProperty("GLUSTER_HOST"); 
+        System.out.println("Testing against host:" + glusterHost);
+        System.out.println("Testing against volume:" + glusterVolume);
+        
+>>>>>>> 3515024fdffb5a2ffebde32df399923a1f8ce5ea
 		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
 
 		tempDirectory.mkdirs();
 		tempDirectory.delete();
 		tempDirectory.mkdir();
 		
+<<<<<<< HEAD
 		gfs = new GlusterFileSystem();
         System.out.println(conf.get("fs.glusterfs.volname"));
         Assert.assertNotNull(conf.get("fs.glusterfs.volname"));
@@ -93,23 +123,46 @@ public class TestGluster{
         /**
         if(glusterHost==null || "".compareTo(glusterHost)==0){
         	InetAddress addr = null;
+=======
+		if(glusterVolume==null){
+			glusterVolume="hadoop-gluster";
+		}
+		
+		gfs = new GlusterFileSystem();
+        Configuration conf = new Configuration();
+        
+        /* retrieve the local machines hostname */
+        if(glusterHost==null || "".compareTo(glusterHost)==0){
+            InetAddress addr = null;
+>>>>>>> 3515024fdffb5a2ffebde32df399923a1f8ce5ea
             
             addr = InetAddress.getLocalHost();
             
             glusterHost = addr.getHostName();   
         }
+<<<<<<< HEAD
         **/
+=======
+>>>>>>> 3515024fdffb5a2ffebde32df399923a1f8ce5ea
         
         temp = new File(tempDirectory, "hadoop-temp");
     	mount = new File(tempDirectory, "mount");
     	temp.mkdir();
     	mount.mkdir();
 
+<<<<<<< HEAD
         conf.set("fs.glusterfs.mount",mount.getAbsolutePath());
         conf.set("quick.slave.io", "true");
         
         System.out.println("Now initializing GlusterFS !");
 
+=======
+    	conf.set("fs.glusterfs.volname", glusterVolume);
+        conf.set("fs.glusterfs.mount",mount.getAbsolutePath());
+        conf.set("fs.glusterfs.server",glusterHost);
+        conf.set("quick.slave.io", "true");
+        
+>>>>>>> 3515024fdffb5a2ffebde32df399923a1f8ce5ea
         gfs.initialize(temp.toURI(), conf);
 	}
 	

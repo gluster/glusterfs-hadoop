@@ -27,17 +27,19 @@
 		<groupId>org.apache.maven.plugins</groupId>
 		<artifactId>maven-surefire-plugin</artifactId>
 		<configuration>
-			<!--  change these to match a gluster volume, or set in global ENV -->
+			<!--  
+				run "export GLUSTER_HOST=192.X.X.1
+				     export GLUSTER_VOLUME=volname" 
+			-->
 		    <systemProperties>
-				 <property>
-				     <name>gluster-volume</name>
-				        <value>gv0</value>
-				  </property>
-				   <property>
-				     <name>gluster-host</name>
-				     <value>bc-intel1</value>
-				   </property>
-				          
+				          <property>
+				             <name>GLUSTER_HOST</name>
+				             <value>${GLUSTER_VOLUME}</value>
+				          </property>
+				           <property>
+				             <name>GLUSTER_VOLUME</name>
+				             <value>${GLUSTER_HOST}</value>
+				          </property>
 			</systemProperties>
 		 </configuration>
 	</plugin>
