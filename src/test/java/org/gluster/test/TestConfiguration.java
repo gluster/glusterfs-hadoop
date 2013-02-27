@@ -7,12 +7,14 @@ import junit.framework.Assert;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * A meta-test: confirms that we correctly loaded gluster properties.
+ * A meta-test: confirms that the configuration sample file has essential parameters.
  */
 public class TestConfiguration {
+
 	@Test
 	public void testGlusterProperties() throws Throwable{
 		try{

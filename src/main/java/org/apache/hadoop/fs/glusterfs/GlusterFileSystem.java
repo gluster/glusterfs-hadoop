@@ -78,7 +78,6 @@ public class GlusterFileSystem extends FileSystem {
 		Process p = null;
 		String mountCmd = null;
 
-		System.out.println("server= " + server);
 		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "
 				+ mount;
 		System.out.println("Running: " + mountCmd);
@@ -114,8 +113,6 @@ public class GlusterFileSystem extends FileSystem {
 			remoteGFSServer = conf.get("fs.glusterfs.server", null);
 			needQuickRead = conf.get("quick.slave.io", null);
 
-			System.out.println("server 0 = "+remoteGFSServer);
-			
 			if ((volName.length() == 0) || (remoteGFSServer.length() == 0)
 					|| (glusterMount.length() == 0))
 				throw new RuntimeException("Not enough info to mount FUSE: volname="+volName + " glustermount=" + glusterMount);
@@ -126,7 +123,7 @@ public class GlusterFileSystem extends FileSystem {
 				throw new RuntimeException("Failed to initialize GlusterFS");
 			}
 
-			if ((needQuickRead.length() != 0)
+			if((needQuickRead.length() != 0)
 					&& (needQuickRead.equalsIgnoreCase("yes")
 							|| needQuickRead.equalsIgnoreCase("on") || needQuickRead
 								.equals("1")))

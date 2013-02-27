@@ -83,8 +83,8 @@ public class TestGluster{
     		glusterHost = addr.getHostName();
     	}
         
-        System.out.println("Testing against host:" + glusterHost);
-        System.out.println("Testing against volume:" + "glusterfs://"+glusterVolume);
+        System.out.println("Testing against host=" + glusterHost);
+        System.out.println("Testing against volume=" + glusterVolume);
         
 		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
 		tempDirectory.mkdirs();
