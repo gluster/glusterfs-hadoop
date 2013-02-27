@@ -61,7 +61,7 @@ public class TestGluster{
 	private static File mount;
 
 	@AfterClass
-	public void after() throws IOException{
+	public static void after() throws IOException{
 		gfs.close();
 		FileUtils.delete(tempDirectory);
 	}
