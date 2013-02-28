@@ -162,7 +162,6 @@ public class TestGluster{
 	
 	@org.junit.Test
 	public void testZDirs() throws Exception {
-	   
         final Path subDir1 = new Path("td_dir.1");
         final Path baseDir = new Path("td_testDirs1");
         final Path test1 = new Path("td_test1");
@@ -205,7 +204,12 @@ public class TestGluster{
         assertFalse(gfs.exists(subDir1));
 
         System.out.println("done.");
-    }
+
+        gfs.delete(subDir1);
+        gfs.delete(baseDir);
+        gfs.delete(test1);
+        gfs.delete(test1);
+	}
 	
 	@org.junit.Test
 	 public void testFiles() throws Exception {
@@ -241,6 +245,11 @@ public class TestGluster{
 
 	        gfs.delete(baseDir, true);
 	        assertFalse(gfs.exists(baseDir));
+	        
+	        gfs.delete(subDir1);
+	        gfs.delete(baseDir);
+	        gfs.delete(file1);
+	        gfs.delete(file2);
 	}
 
 	 public void testFileIO() throws Exception {
@@ -302,7 +311,11 @@ public class TestGluster{
 	        gfs.delete(subDir1, true);
 	        assertFalse(gfs.exists(subDir1));        
 	        gfs.delete(baseDir, true);
-	        assertFalse(gfs.exists(baseDir));        
+	        assertFalse(gfs.exists(baseDir)); 
+	        
+	        gfs.delete(subDir1);
+	        gfs.delete(file1);
+	        gfs.delete(baseDir);
 	    }
 	
 	
