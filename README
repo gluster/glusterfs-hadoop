@@ -167,6 +167,19 @@ org.gluster.test.AppTest.java                  <--- Your test cases go here (if 
 ./COPYING                                                                    <--- License
 ./README                                                                     <--- This file
 
+
+
+JENKINS
+-------
+
+  At the moment, you need to run as root - this can be done by modifying this line in the jenkins init.d/ script.
+  This is because of the mount command issued in the GlusterFileSystem. 
+  
+  #daemon --user "$JENKINS_USER" --pidfile "$JENKINS_PID_FILE" $JAVA_CMD $PARAMS > /dev/null
+  echo "WARNING: RUNNING AS ROOT" 
+  daemon --user root --pidfile "$JENKINS_PID_FILE" $JAVA_CMD $PARAMS > /dev/null
+
+
 BUILDING 
 --------
 
