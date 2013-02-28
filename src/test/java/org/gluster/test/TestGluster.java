@@ -190,8 +190,8 @@ public class TestGluster{
         System.out.println("Assert that test2 " + test2 + " is file under gfs");
         assertFalse(gfs.isDirectory(test2));
 
-        gfs.create(new Path(test1,"dummyfile"));
         
+        gfs.create(new Path(baseDir,"dummyfile"));
         FileStatus[] p = gfs.listStatus(baseDir);
         System.out.println("Assert that baseDir " + baseDir+ " has 1 file in it " + p.length);
         assertEquals(p.length, 1);
