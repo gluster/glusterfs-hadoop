@@ -186,7 +186,7 @@ public class TestGluster{
         assertFalse(gfs.isDirectory(test2));
 
         FileStatus[] p = gfs.listStatus(baseDir);
-        System.out.println("Assert that baseDir has 1 file in it");
+        System.out.println("Assert that baseDir " + baseDir+ " has 1 file in it");
         assertEquals(p.length, 1);
 
         gfs.delete(baseDir, true);
