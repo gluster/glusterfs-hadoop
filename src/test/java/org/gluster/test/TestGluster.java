@@ -161,7 +161,7 @@ public class TestGluster{
     }
 	
 	@org.junit.Test
-	public void testDirs() throws Exception {
+	public void testZDirs() throws Exception {
 	   
         final Path subDir1 = new Path("dir.1");
         final Path baseDir = new Path("testDirs1");
@@ -194,7 +194,7 @@ public class TestGluster{
         Thread.sleep(1000);
 
         FileStatus[] p = gfs.listStatus(baseDir);
-        System.out.println("Assert that baseDir " + baseDir+ " has 1 file in it");
+        System.out.println("Assert that baseDir " + baseDir+ " has 1 file in it " + p.length);
         assertEquals(p.length, 1);
 
         Thread.sleep(1000);
