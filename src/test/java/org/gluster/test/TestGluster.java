@@ -205,10 +205,9 @@ public class TestGluster{
 
         System.out.println("done.");
 
-        gfs.delete(subDir1);
         gfs.delete(baseDir);
         gfs.delete(test1);
-        gfs.delete(test1);
+        gfs.delete(test2);
 	}
 	
 	@org.junit.Test
