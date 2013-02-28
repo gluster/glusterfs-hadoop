@@ -175,6 +175,10 @@ JENKINS
   At the moment, you need to run as root - this can be done by modifying this line in the jenkins init.d/ script.
   This is because of the mount command issued in the GlusterFileSystem. 
   
+  #Method 1) Modify JENKINS_USER in /etc/sysconfig/jenkins
+  JENKINS_USER=root
+
+  #Method 2) Directly modify /etc/init.d/jenkins 
   #daemon --user "$JENKINS_USER" --pidfile "$JENKINS_PID_FILE" $JAVA_CMD $PARAMS > /dev/null
   echo "WARNING: RUNNING AS ROOT" 
   daemon --user root --pidfile "$JENKINS_PID_FILE" $JAVA_CMD $PARAMS > /dev/null
