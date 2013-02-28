@@ -208,7 +208,7 @@ public class TestGluster{
         gfs.delete(subDir1);
         gfs.delete(baseDir);
         gfs.delete(test1);
-        gfs.delete(test1);
+        gfs.delete(test2);
 	}
 	
 	@org.junit.Test
@@ -247,7 +247,6 @@ public class TestGluster{
 	        assertFalse(gfs.exists(baseDir));
 	        
 	        gfs.delete(subDir1);
-	        gfs.delete(baseDir);
 	        gfs.delete(file1);
 	        gfs.delete(file2);
 	}
