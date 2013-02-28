@@ -163,10 +163,10 @@ public class TestGluster{
 	@org.junit.Test
 	public void testZDirs() throws Exception {
 	   
-        final Path subDir1 = new Path("dir.1");
-        final Path baseDir = new Path("testDirs1");
-        final Path test1 = new Path("test1");
-        final Path test2 = new Path("test/dir.2");
+        final Path subDir1 = new Path("td_dir.1");
+        final Path baseDir = new Path("td_testDirs1");
+        final Path test1 = new Path("td_test1");
+        final Path test2 = new Path("td_test/dir.2");
         
 		System.out.println("Assert that " + baseDir + " doesnt exist yet");
         assertFalse(gfs.exists(baseDir));
@@ -222,10 +222,10 @@ public class TestGluster{
 	@org.junit.Test
 	 public void testFiles() throws Exception {
 	   
-	        Path subDir1 = new Path("dir.1");
-	        Path baseDir = new Path("testDirs1");
-	        Path file1 = new Path("dir.1/foo.1");
-	        Path file2 = new Path("dir.1/foo.2");
+	        Path subDir1 = new Path("tf_dir.1");
+	        Path baseDir = new Path("tf_testDirs1");
+	        Path file1 = new Path("tf_dir.1/foo.1");
+	        Path file2 = new Path("tf_dir.1/foo.2");
 
 	        
 	        gfs.mkdirs(baseDir);
@@ -253,13 +253,13 @@ public class TestGluster{
 
 	        gfs.delete(baseDir, true);
 	        assertFalse(gfs.exists(baseDir));
-	    }
+	}
 
 	 public void testFileIO() throws Exception {
 	     
-	        Path subDir1 = new Path("dir.1");
-	        Path file1 = new Path("dir.1/foo.1");
-	        Path baseDir = new Path("testDirs1");
+	        Path subDir1 = new Path("tfio_dir.1");
+	        Path file1 = new Path("tfio_dir.1/foo.1");
+	        Path baseDir = new Path("tfio_testDirs1");
 	        
 	        gfs.mkdirs(baseDir);
 	        assertTrue(gfs.isDirectory(baseDir));
