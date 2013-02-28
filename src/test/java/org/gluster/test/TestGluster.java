@@ -28,6 +28,9 @@ package org.gluster.test;
 
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,19 +72,29 @@ public class TestGluster{
 	public static void after() throws IOException{
 		gfs.close();
 		FileUtils.delete(tempDirectory);
-		
-		
-		
 	}
-	
+	 
+    
     @BeforeClass
 	public static void before() throws Exception{
     	/* the user can over ride the default gluster volume used for test with ENV var */
-        glusterVolume= System.getProperty("gluster-volume");
-        glusterHost=System.getProperty("gluster-host"); 
+        glusterVolume= System.getProperty("GLUSTER_VOLUME");
+        if(glusterVolume==null || glusterVolume.equals("")){
+    		System.out.println("WARNING: HOST NOT DEFINED IN ENVIRONMENT! See README");
+        	glusterVolume="HadoopVol";
+		}
+        
+        glusterHost= System.getProperty("GLUSTER_HOST"); 
+    	if(glusterHost==null || glusterHost.equals("")){
+    		System.out.println("WARNING: HOST NOT DEFINED IN ENVIRONMENT! See README");
+    		InetAddress addr = InetAddress.getLocalHost();
+    		glusterHost = addr.getHostName();
+    	}
+        
+        System.out.println("Testing against host=" + glusterHost);
+        System.out.println("Testing against volume=" + glusterVolume);
         
 		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
-
 		tempDirectory.mkdirs();
 		tempDirectory.delete();
 		tempDirectory.mkdir();
@@ -91,7 +104,6 @@ public class TestGluster{
 		}
 		
 		gfs = new GlusterFileSystem();
-        Configuration conf = new Configuration();
         
         /* retrieve the local machines hostname */
         if(glusterHost==null || "".compareTo(glusterHost)==0){
@@ -102,19 +114,26 @@ public class TestGluster{
             glusterHost = addr.getHostName();   
         }
         
+        System.out.println("Confirmed that configuration properties from gluster were found , now creating dirs");
+		
+		gfs = new GlusterFileSystem();
         temp = new File(tempDirectory, "hadoop-temp");
     	mount = new File(tempDirectory, "mount");
     	temp.mkdir();
     	mount.mkdir();
+ 
+    	System.out.println("Now initializing GlusterFS !");
 
+    	Configuration conf = new Configuration();
     	conf.set("fs.glusterfs.volname", glusterVolume);
-        conf.set("fs.glusterfs.mount",mount.getAbsolutePath());
-        conf.set("fs.glusterfs.server",glusterHost);
+        conf.set("fs.glusterfs.mount", mount.getAbsolutePath());
+        conf.set("fs.glusterfs.server", glusterHost);
+        conf.set("fs.default.name", "glusterfs://"+glusterHost+":9000");
         conf.set("quick.slave.io", "true");
-        
+        System.out.println("server " + conf.get("fs.glusterfs.server"));
         gfs.initialize(temp.toURI(), conf);
 	}
-	
+    
 	@org.junit.Test
 	public void testTextWriteAndRead() throws Exception{
 	   
