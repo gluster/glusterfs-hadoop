@@ -167,6 +167,10 @@ public class TestGluster{
         final Path baseDir = new Path("testDirs1");
         final Path test1 = new Path("test1");
         final Path test2 = new Path("test/dir.2");
+        
+		System.out.println("Assert that " + baseDir + " doesnt exist yet");
+        assertFalse(gfs.isDirectory(baseDir));
+        
         // make the dir
         gfs.mkdirs(baseDir);
 
