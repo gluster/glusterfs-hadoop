@@ -176,26 +176,40 @@ public class TestGluster{
 
         gfs.mkdirs(subDir1);
 
+        Thread.sleep(1000);
+
         System.out.println("Assert that subDir1 " + subDir1 + " exists under gfs");
         assertTrue(gfs.isDirectory(subDir1));
 
+        Thread.sleep(1000);
+
         System.out.println("Assert that test1 " + test1 + " exists under gfs");
         assertFalse(gfs.exists(test1));
-        
+
+        Thread.sleep(1000);
+
         System.out.println("Assert that test2 " + test2 + " is file under gfs");
         assertFalse(gfs.isDirectory(test2));
+
+        Thread.sleep(1000);
 
         FileStatus[] p = gfs.listStatus(baseDir);
         System.out.println("Assert that baseDir " + baseDir+ " has 1 file in it");
         assertEquals(p.length, 1);
 
+        Thread.sleep(1000);
+
         gfs.delete(baseDir, true);
         System.out.println("Assert that basedir  " +baseDir+" is nonexistent");
         assertFalse(gfs.exists(baseDir));
-        
+
+        Thread.sleep(1000);
+
         gfs.delete(subDir1, true);
         System.out.println("Assert that subDir  " +subDir1+" is nonexistent");
         assertFalse(gfs.exists(subDir1));
+
+        Thread.sleep(1000);
         
         System.out.println("done.");
     }
