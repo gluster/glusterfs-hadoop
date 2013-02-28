@@ -204,7 +204,7 @@ public class TestGluster{
         assertFalse(gfs.exists(subDir1));
 
         System.out.println("done.");
-
+ 
         gfs.delete(baseDir);
         gfs.delete(test1);
         gfs.delete(test2);
