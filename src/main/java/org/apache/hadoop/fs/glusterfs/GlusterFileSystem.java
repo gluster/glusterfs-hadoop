@@ -120,7 +120,7 @@ public class GlusterFileSystem extends FileSystem {
 			
 			ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			if (!ret) {
-				System.out.println("Initialize: Failed to mount GlusterFS - hopefully its already mounted");
+				throw new RuntimeException("Initialize: Failed to mount GlusterFS ");
 			}
 
 			if((needQuickRead.length() != 0)
