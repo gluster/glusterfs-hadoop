@@ -159,32 +159,45 @@ public class TestGluster{
         
         assertFalse(gfs.exists(new Path("test1")));
     }
+	
 	@org.junit.Test
 	public void testDirs() throws Exception {
 	   
-        Path subDir1 = new Path("dir.1");
-        Path baseDir = new Path("testDirs1");
+        final Path subDir1 = new Path("dir.1");
+        final Path baseDir = new Path("testDirs1");
+        final Path test1 = new Path("test1");
+        final Path test2 = new Path("test/dir.2");
         // make the dir
         gfs.mkdirs(baseDir);
+
+		System.out.println("Assert that " + baseDir + " exists under gfs");
         assertTrue(gfs.isDirectory(baseDir));
        // gfs.setWorkingDirectory(baseDir);
 
         gfs.mkdirs(subDir1);
+
+        System.out.println("Assert that subDir1 " + subDir1 + " exists under gfs");
         assertTrue(gfs.isDirectory(subDir1));
 
-        assertFalse(gfs.exists(new Path("test1")));
-        assertFalse(gfs.isDirectory(new Path("test/dir.2")));
-
+        System.out.println("Assert that test1 " + test1 + " exists under gfs");
+        assertFalse(gfs.exists(test1));
         
+        System.out.println("Assert that test2 " + test2 + " is file under gfs");
+        assertFalse(gfs.isDirectory(test2));
+
         FileStatus[] p = gfs.listStatus(baseDir);
+        System.out.println("Assert that baseDir has 1 file in it");
         assertEquals(p.length, 1);
 
         gfs.delete(baseDir, true);
+        System.out.println("Assert that basedir  " +baseDir+" is nonexistent");
         assertFalse(gfs.exists(baseDir));
         
         gfs.delete(subDir1, true);
+        System.out.println("Assert that subDir  " +subDir1+" is nonexistent");
         assertFalse(gfs.exists(subDir1));
         
+        System.out.println("done.");
     }
 	
 	@org.junit.Test
