@@ -328,8 +328,9 @@ public class TestGluster{
 		 */
 		@Test
 		public void testPermissions() throws Exception{
-	        Path file1 = new Path("tfio_dir.1/foo.1");
+	        Path file1 = new Path("tPERM/foo");
 	        gfs.create(file1);
+	        assertTrue(gfs.exists(file1));
 	        System.out.println(gfs.getFileStatus(file1).getPermission().getGroupAction());
 	        System.out.println(gfs.getFileStatus(file1).getPermission().getUserAction());
 	        System.out.println(gfs.getFileStatus(file1).getPermission().getOtherAction());
