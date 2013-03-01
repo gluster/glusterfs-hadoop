@@ -47,7 +47,7 @@ import java.util.TreeMap;
  * to access files in GlusterFS backed file system via FUSE mount
  */
 public class GlusterFileSystem extends FileSystem {
-	
+
 	private FileSystem glusterFs = null;
 	private URI uri = null;
 	private Path workingDir = null;
@@ -76,21 +76,23 @@ public class GlusterFileSystem extends FileSystem {
 		boolean ret = true;
 		int retVal = 0;
 		Process p = null;
+		String s = null;
 		String mountCmd = null;
 
-		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "+ mount;
-		System.out.println("Running: " + mountCmd);
+		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "
+				+ mount;
+
 		try {
 			p = Runtime.getRuntime().exec(mountCmd);
 
 			retVal = p.waitFor();
 			if (retVal != 0)
 				ret = false;
-		} 
-		catch (IOException e) {
+
+		} catch (IOException e) {
+			System.out.println("Problem mounting FUSE mount on: " + mount);
 			e.printStackTrace();
-			System.out.println("Error calling mount, Continuing.., hopefully its already been mounted.");
-			//throw new RuntimeException("Problem mounting FUSE mount on: "+ mount);
+			throw new RuntimeException(e);
 		}
 
 		return ret;
@@ -108,22 +110,28 @@ public class GlusterFileSystem extends FileSystem {
 		System.out.println("Initializing GlusterFS");
 
 		try {
-			volName = conf.get("fs.glusterfs.volname", null);
-			glusterMount = conf.get("fs.glusterfs.mount", null);
-			remoteGFSServer = conf.get("fs.glusterfs.server", null);
-			needQuickRead = conf.get("quick.slave.io", null);
+			volName = conf.get("fs.glusterfs.volname", "");
+			glusterMount = conf.get("fs.glusterfs.mount", "");
+			remoteGFSServer = conf.get("fs.glusterfs.server", "");
+			needQuickRead = conf.get("quick.slave.io", "");
 
+			/*
+			 * bail out if we do not have enough information to do a FUSE mount
+			 */
 			if ((volName.length() == 0) || (remoteGFSServer.length() == 0)
 					|| (glusterMount.length() == 0))
-				throw new RuntimeException("Not enough info to mount FUSE: volname="+volName + " glustermount=" + glusterMount);
+				throw new RuntimeException(
+						"Not enough info for FUSE Mount : volname=" + volName
+								+ ",server=" + remoteGFSServer
+								+ ",glustermount=" + glusterMount);
 
-			
 			ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			if (!ret) {
-				throw new RuntimeException("Initialize: Failed to mount GlusterFS ");
+				System.out.println("Failed to initialize GlusterFS");
+				System.exit(-1);
 			}
 
-			if((needQuickRead.length() != 0)
+			if ((needQuickRead.length() != 0)
 					&& (needQuickRead.equalsIgnoreCase("yes")
 							|| needQuickRead.equalsIgnoreCase("on") || needQuickRead
 								.equals("1")))
@@ -140,10 +148,10 @@ public class GlusterFileSystem extends FileSystem {
 			this.hostname = addr.getHostName();
 
 			setConf(conf);
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Unable to initialize GlusterFS " + e.getMessage());
+
+		} catch (Exception e) {
+			System.out.println("Unable to initialize GlusterFS");
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -261,31 +269,56 @@ public class GlusterFileSystem extends FileSystem {
 		return getFileStatus(nPath);
 	}
 
+	public static class FUSEFileStatus extends FileStatus {
+
+		File theFile;
+
+		public FUSEFileStatus(File f) {
+			super();
+			theFile = f;
+		}
+
+		public FUSEFileStatus(File f, boolean isdir, int block_replication,
+				long blocksize, Path path) {
+			// if its a dir, 0 length
+			super(isdir ? 0 : f.length(), isdir, block_replication, blocksize,
+					f.lastModified(), path);
+			theFile = f;
+		}
+
+		/**
+		 * Wrapper to "ls -aFL" - this should fix BZ908898
+		 */
+		@Override
+		public String getOwner() {
+			try {
+				return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).get(
+						"owner");
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
 	public FileStatus getFileStatus(Path path) throws IOException {
 		Path absolute = makeAbsolute(path);
-		File f = new File(absolute.toUri().getPath());
+		final File f = new File(absolute.toUri().getPath());
 
 		if (!f.exists())
 			throw new FileNotFoundException("File " + f.getPath()
 					+ " does not exist.");
-
 		FileStatus fs;
+
 		// simple version - should work . we'll see.
+		// TODO COMPARE these w/ original signatures - do we retain the correct
+		// default args?
 		if (f.isDirectory())
-			fs = new FileStatus(0, true, 1, 0, f.lastModified(),
-					path.makeQualified(this)) {
-				public String getOwner() {
-					return "root";
-				}
-			};
+			fs = new FUSEFileStatus(f, true, 1, 0, path.makeQualified(this));
 		else
-			fs = new FileStatus(f.length(), false, 0, getDefaultBlockSize(),
-					f.lastModified(), path.makeQualified(this)) {
-				public String getOwner() {
-					return "root";
-				}
-			};
+			fs = new FUSEFileStatus(f, false, 0, getDefaultBlockSize(),
+					path.makeQualified(this));
 		return fs;
+
 	}
 
 	/*
