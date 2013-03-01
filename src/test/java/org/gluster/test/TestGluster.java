@@ -45,6 +45,7 @@ import org.apache.tools.ant.util.FileUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 
 /**
@@ -66,7 +67,6 @@ public class TestGluster{
 		FileUtils.delete(tempDirectory);
 	}
 	 
-    
     @BeforeClass
 	public static void before() throws Exception{
     	/* the user can over ride the default gluster volume used for test with ENV var */
@@ -322,6 +322,16 @@ public class TestGluster{
 	        gfs.delete(baseDir);
 	    }
 	
-	
-	
+		/**
+		 * Confirm that we've faithfully ported over the RawLocalFileStatus 
+		 * code from hadoop.
+		 */
+		@Test
+		public void testPermissions() throws Exception{
+	        Path file1 = new Path("tfio_dir.1/foo.1");
+	        gfs.create(file1);
+	        System.out.println(gfs.getFileStatus(file1).getPermission().getGroupAction());
+	        System.out.println(gfs.getFileStatus(file1).getPermission().getUserAction());
+	        System.out.println(gfs.getFileStatus(file1).getPermission().getOtherAction());
+		}
 }
