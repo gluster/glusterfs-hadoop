@@ -12,10 +12,9 @@ public class TestFileInfo {
 
 	/**
 	 * This is a unit test of the FileInfoUtils ability 
-	 * to read permissions from POSIX.  
-	 * It is not a test of gluster. 
-	 * For a test of the GlusterFileSystem, see 
-	 * {@link TestGluster}
+	 * to read and parse permissions from POSIX and run runtime.exec correctly.  
+	 * It is not a test of gluster. For a test of the GlusterFileSystem ownership, see 
+	 * {@link TestGluster} .testOwner.
 	 */
 	@Test
 	public void testPosix() throws Exception {
@@ -25,6 +24,5 @@ public class TestFileInfo {
 		System.out.println("Confirming -- \nuser.name(" + user +")=owner("+owner+")");
 		Assert.assertEquals(user,owner);
 	}
-
 }
 

@@ -125,7 +125,12 @@ public class TestGluster{
         System.out.println("server " + conf.get("fs.glusterfs.server"));
         gfs.initialize(temp.toURI(), conf);
 	}
-  
+    
+    
+    /**
+     * BZ908898 : Test that confirms that ownership is preserved in 
+     * gluster FileStatus.
+     */
     @org.junit.Test
     public void testOwner() throws Exception{
     	final String me = System.getProperties().getProperty("user.name");    	

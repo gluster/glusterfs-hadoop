@@ -9,8 +9,7 @@ import java.util.TreeMap;
  * Because java 6 doesn't support cross platform file info, we use Runtime exec
  * to get details.
  * 
- * 
- * 
+ * This class will be extended in the future to also return permissions.
  */
 public class FileInfoUtil {
 	
