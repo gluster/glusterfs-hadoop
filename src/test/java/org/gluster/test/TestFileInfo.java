@@ -10,10 +10,15 @@ import org.junit.Test;
 
 public class TestFileInfo {
 
-	//TODO ~ also add gluster file system tests to test that
-	//the filesystem getStatus utilizes this information correctly.
+	/**
+	 * This is a unit test of the FileInfoUtils ability 
+	 * to read permissions from POSIX.  
+	 * It is not a test of gluster. 
+	 * For a test of the GlusterFileSystem, see 
+	 * {@link TestGluster}
+	 */
 	@Test
-	public void test() throws Exception {
+	public void testPosix() throws Exception {
 		String user=System.getProperties().getProperty("user.name");
 		File f = File.createTempFile("tempjunit", ".tmp");
 		String owner=FileInfoUtil.getLSinfo(f.getAbsolutePath()).get("owner");
@@ -21,15 +26,5 @@ public class TestFileInfo {
 		Assert.assertEquals(user,owner);
 	}
 
-	
-	@Test
-	public void test2(){
-
-		String t = "drwxr-xr-x 2 root root 8198 Feb 21 20:29 ./";
-		String[] vals = t.split("\\s+");
-		for(int i = 0 ; i < vals.length; i++){
-			System.out.println(i + " " + vals[i]);
-		}
-	}
 }
 

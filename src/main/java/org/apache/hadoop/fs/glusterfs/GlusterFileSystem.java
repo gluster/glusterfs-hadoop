@@ -81,20 +81,17 @@ public class GlusterFileSystem extends FileSystem {
 
 		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "
 				+ mount;
-
+		System.out.println(mountCmd);
 		try {
 			p = Runtime.getRuntime().exec(mountCmd);
-
 			retVal = p.waitFor();
 			if (retVal != 0)
 				ret = false;
-
-		} catch (IOException e) {
+		} 
+		catch (IOException e) {
 			System.out.println("Problem mounting FUSE mount on: " + mount);
-			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
-
 		return ret;
 	}
 
@@ -270,7 +267,6 @@ public class GlusterFileSystem extends FileSystem {
 	}
 
 	public static class FUSEFileStatus extends FileStatus {
-
 		File theFile;
 
 		public FUSEFileStatus(File f) {
@@ -294,7 +290,8 @@ public class GlusterFileSystem extends FileSystem {
 			try {
 				return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).get(
 						"owner");
-			} catch (Exception e) {
+			} 
+			catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}

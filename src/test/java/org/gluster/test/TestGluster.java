@@ -27,7 +27,6 @@
 package org.gluster.test;
 
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -35,23 +34,16 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 import org.apache.hadoop.conf.Configuration;
-
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
 import org.apache.tools.ant.util.FileUtils;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 
 
@@ -133,6 +125,14 @@ public class TestGluster{
         System.out.println("server " + conf.get("fs.glusterfs.server"));
         gfs.initialize(temp.toURI(), conf);
 	}
+  
+    @org.junit.Test
+    public void testOwner() throws Exception{
+    	final String me = System.getProperties().getProperty("user.name");    	
+        Path myFile = new Path("to_owned_by_me.txt");
+        gfs.create(myFile);
+        Assert.assertEquals(gfs.getFileStatus(myFile).getOwner(),me);
+    }
     
 	@org.junit.Test
 	public void testTextWriteAndRead() throws Exception{
