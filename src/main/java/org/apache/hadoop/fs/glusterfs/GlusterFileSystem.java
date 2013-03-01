@@ -24,23 +24,26 @@
 
 package org.apache.hadoop.fs.glusterfs;
 
-import java.io.*;
-import java.net.*;
-
-import java.util.regex.*;
+import java.io.DataOutput;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
-
-import java.util.TreeMap;
+import org.apache.hadoop.util.StringUtils;
 
 /*
  * This package provides interface for hadoop jobs (incl. Map/Reduce)
@@ -256,7 +259,7 @@ public class GlusterFileSystem extends FileSystem {
 			fileStatus[fileCnt] = getFileStatusFromFileString(relpath
 					+ strFileList[fileCnt]);
 		}
-
+		
 		return fileStatus;
 	}
 
@@ -266,34 +269,120 @@ public class GlusterFileSystem extends FileSystem {
 		return getFileStatus(nPath);
 	}
 
-	public static class FUSEFileStatus extends FileStatus {
+
+	/**
+	 * Adopted from The Existing raw local file status already implements the equivalent of the FUSE requirements.
+	 */
+	 public static class RawLocalFileStatus extends FileStatus {
+	    /* We can add extra fields here. It breaks at least CopyFiles.FilePair().
+	     * We recognize if the information is already loaded by check if
+	     * onwer.equals("").
+	     */
+	    private boolean isPermissionLoaded() {
+	      return !super.getOwner().equals(""); 
+	    }
+	    
+	    RawLocalFileStatus(File f, long defaultBlockSize, FileSystem fs) {
+	      super(f.length(), f.isDirectory(), 1, defaultBlockSize,
+	            f.lastModified(), new Path(f.getPath()).makeQualified(fs));
+	    }
+	    
+	    @Override
+	    public FsPermission getPermission() {
+	      if (!isPermissionLoaded()) {
+	        loadPermissionInfo();
+	      }
+	      return super.getPermission();
+	    }
+
+	    @Override
+	    public String getOwner() {
+	      if (!isPermissionLoaded()) {
+	        loadPermissionInfo();
+	      }
+	      return super.getOwner();
+	    }
+
+	    @Override
+	    public String getGroup() {
+	      if (!isPermissionLoaded()) {
+	        loadPermissionInfo();
+	      }
+	      return super.getGroup();
+	    }
+	    
+	    /// loads permissions, owner, and group from `ls -ld`
+	    private void loadPermissionInfo() {
+	      IOException e = null;
+	      try {
+	        StringTokenizer t = new StringTokenizer(
+	            Shell.execCommand("ls","-ld",getPath().toUri().toString()));
+	        //expected format
+	        //-rw-------    1 username groupname ...
+	        String permission = t.nextToken();
+	        if (permission.length() > 10) { //files with ACLs might have a '+'
+	          permission = permission.substring(0, 10);
+	        }
+	        setPermission(FsPermission.valueOf(permission));
+	        t.nextToken();
+	        setOwner(t.nextToken());
+	        setGroup(t.nextToken());
+	      } catch (Shell.ExitCodeException ioe) {
+	        if (ioe.getExitCode() != 1) {
+	          e = ioe;
+	        } else {
+	          setPermission(null);
+	          setOwner(null);
+	          setGroup(null);
+	        }
+	      } catch (IOException ioe) {
+	        e = ioe;
+	      } finally {
+	        if (e != null) {
+	          throw new RuntimeException("Error while running command to get " +
+	                                     "file permissions : " + 
+	                                     StringUtils.stringifyException(e));
+	        }
+	      }
+	    }
+
+	    @Override
+	    public void write(DataOutput out) throws IOException {
+	      if (!isPermissionLoaded()) {
+	        loadPermissionInfo();
+	      }
+	      super.write(out);
+	    }
+	  }
+	
+	private class FUSEFileStatus extends RawLocalFileStatus{
 		File theFile;
-
-		public FUSEFileStatus(File f) {
-			super();
-			theFile = f;
-		}
-
-		public FUSEFileStatus(File f, boolean isdir, int block_replication,
+		Path path;
+		boolean isdir;
+		short blockReplication;
+		public FUSEFileStatus(File f, boolean isdir, short block_replication,
 				long blocksize, Path path) {
 			// if its a dir, 0 length
-			super(isdir ? 0 : f.length(), isdir, block_replication, blocksize,
+			super(f, blocksize, GlusterFileSystem.this);
+			/**super(isdir ? 0 : f.length(), isdir, block_replication, blocksize,
 					f.lastModified(), path);
-			theFile = f;
+					**/
+			this.path=path;
+			this.theFile = f;
+			this.blockReplication=block_replication;
 		}
-
-		/**
-		 * Wrapper to "ls -aFL" - this should fix BZ908898
-		 */
+		
 		@Override
-		public String getOwner() {
-			try {
-				return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).get(
-						"owner");
-			} 
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+		public short getReplication(){
+			return blockReplication;
+		}
+		@Override
+		public boolean isDir(){
+			return isdir;
+		}
+		@Override
+		public Path getPath(){
+			return path;
 		}
 	}
 
@@ -310,9 +399,9 @@ public class GlusterFileSystem extends FileSystem {
 		// TODO COMPARE these w/ original signatures - do we retain the correct
 		// default args?
 		if (f.isDirectory())
-			fs = new FUSEFileStatus(f, true, 1, 0, path.makeQualified(this));
+			fs = new FUSEFileStatus(f, true, (short) 1, 0, path.makeQualified(this));
 		else
-			fs = new FUSEFileStatus(f, false, 0, getDefaultBlockSize(),
+			fs = new FUSEFileStatus(f, false, (short) 0, getDefaultBlockSize(),
 					path.makeQualified(this));
 		return fs;
 
