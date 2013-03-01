@@ -9,7 +9,7 @@
   <url>http://maven.apache.org</url>
   <dependencies>
     <dependency>
-		<groupId>junit</groupId>
+	<groupId>junit</groupId>
 		<artifactId>junit</artifactId>
 		<version>4.4</version>
 	</dependency>
@@ -22,6 +22,27 @@
   <build>
     <plugins>
       <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-surefire-plugin</artifactId>
+		<configuration>
+			<!--  
+				run "export GLUSTER_HOST=192.X.X.1
+				     export GLUSTER_VOLUME=volname" 
+			-->
+		    <systemProperties>
+				          <property>
+				             <name>GLUSTER_HOST</name>
+				             <value>${GLUSTER_HOST}</value>
+				          </property>
+				           <property>
+				             <name>GLUSTER_VOLUME</name>
+				             <value>${GLUSTER_VOLUME}</value>
+				          </property>
+			</systemProperties>
+		 </configuration>
+ 	 </plugin>
+		      
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>2.3.2</version>
@@ -30,6 +51,18 @@
           <target>1.5</target>
         </configuration>
       </plugin>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+      
+      
     </plugins>
   </build>
 </project>

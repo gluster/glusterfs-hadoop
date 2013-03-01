@@ -166,3 +166,34 @@ org.gluster.test.AppTest.java                  <--- Your test cases go here (if 
 
 ./COPYING                                                                    <--- License
 ./README                                                                     <--- This file
+
+
+
+JENKINS
+-------
+
+  At the moment, you need to run as root - this can be done by modifying this line in the jenkins init.d/ script.
+  This is because of the mount command issued in the GlusterFileSystem. 
+  
+  #Method 1) Modify JENKINS_USER in /etc/sysconfig/jenkins
+  JENKINS_USER=root
+
+  #Method 2) Directly modify /etc/init.d/jenkins 
+  #daemon --user "$JENKINS_USER" --pidfile "$JENKINS_PID_FILE" $JAVA_CMD $PARAMS > /dev/null
+  echo "WARNING: RUNNING AS ROOT" 
+  daemon --user root --pidfile "$JENKINS_PID_FILE" $JAVA_CMD $PARAMS > /dev/null
+
+
+BUILDING 
+--------
+
+Building requires a working gluster mount for unit tests. 
+The unit tests read test resources from glusterconfig.properties - a file which should be present 
+
+1) edit your .bashrc, or else at your terminal run : 
+
+export GLUSTER_VOLUME=MyVolume <-- replace with your preferred volume name (default is HadoopVol)
+export GLUSTER_HOST=192.0.1.2 <-- replace with your host (default will be determined at runtime in the JVM)
+
+2) run: 
+   mvn package
