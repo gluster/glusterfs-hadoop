@@ -273,7 +273,7 @@ public class GlusterFileSystem extends FileSystem {
 	/**
 	 * Adopted from The Existing raw local file status already implements the equivalent of the FUSE requirements.
 	 */
-	 public static class RawLocalFileStatus extends FileStatus {
+	 public class RawLocalFileStatus extends FileStatus {
 	    /* We can add extra fields here. It breaks at least CopyFiles.FilePair().
 	     * We recognize if the information is already loaded by check if
 	     * onwer.equals("").
@@ -316,7 +316,7 @@ public class GlusterFileSystem extends FileSystem {
 	      IOException e = null;
 	      try {
 	        StringTokenizer t = new StringTokenizer(
-	            Shell.execCommand("ls","-ld",getPath().toUri().toString()));
+	            Shell.execCommand("ls","-ld",getPath().toUri().getPath()));
 	        //expected format
 	        //-rw-------    1 username groupname ...
 	        String permission = t.nextToken();
@@ -364,7 +364,7 @@ public class GlusterFileSystem extends FileSystem {
 				long blocksize, Path path) {
 			// if its a dir, 0 length
 			super(f, blocksize, GlusterFileSystem.this);
-			/**super(isdir ? 0 : f.length(), isdir, block_replication, blocksize,
+			/**	super(isdir ? 0 : f.length(), isdir, block_replication, blocksize,
 					f.lastModified(), path);
 					**/
 			this.path=path;
