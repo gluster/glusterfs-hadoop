@@ -131,6 +131,7 @@ public class TestGluster{
     	final String me = System.getProperties().getProperty("user.name");    	
         Path myFile = new Path("to_owned_by_me.txt");
         gfs.create(myFile);
+        System.out.println("Asserting that " + myFile + " is owned by " + me);
         Assert.assertEquals(gfs.getFileStatus(myFile).getOwner(),me);
     }
     
