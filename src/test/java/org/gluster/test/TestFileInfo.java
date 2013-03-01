@@ -1,15 +1,17 @@
 package org.gluster.test;
 
 import java.io.File;
-
 import junit.framework.Assert;
-
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.glusterfs.FileInfoUtil;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.tools.ant.types.FlexInteger;
 import org.junit.Test;
 
 public class TestFileInfo {
 
+	
 	/**
 	 * This is a unit test of the FileInfoUtils ability 
 	 * to read and parse permissions from POSIX and run runtime.exec correctly.  
@@ -23,6 +25,8 @@ public class TestFileInfo {
 		String owner=FileInfoUtil.getLSinfo(f.getAbsolutePath()).get("owner");
 		System.out.println("Confirming -- \nuser.name(" + user +")=owner("+owner+")");
 		Assert.assertEquals(user,owner);
+		
 	}
+	
 }
 

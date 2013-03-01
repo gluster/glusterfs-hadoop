@@ -11,9 +11,11 @@ import java.util.TreeMap;
  * 
  * This class will be extended in the future to also return permissions.
  */
+@Deprecated
 public class FileInfoUtil {
 	
 	/**
+	 * Deprecated: use the RawLocalFileStatus instead.
 	 * Returns the array of values from ls -aFl : 
 	 * 
 	 * Currently only handles "owner" , since that is what is most needed by 
@@ -22,6 +24,7 @@ public class FileInfoUtil {
 	 * m = getLSinfo("myfile.txt").get("owner") 
 	 * System.out.println(m) ; <-- jayunit100
 	 */
+	@Deprecated 
 	public static Map<String, String> getLSinfo(String filename) throws IOException {
 		String ret="";
 		try {
