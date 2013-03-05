@@ -328,23 +328,10 @@ public class GlusterFileSystem extends FileSystem {
 	        t.nextToken();
 	        setOwner(t.nextToken());
 	        setGroup(t.nextToken());
-	      } catch (Shell.ExitCodeException ioe) {
-	        if (ioe.getExitCode() != 1) {
-	          e = ioe;
-	        } else {
-	          setPermission(null);
-	          setOwner(null);
-	          setGroup(null);
-	        }
-	      } catch (IOException ioe) {
-	        e = ioe;
-	      } finally {
-	        if (e != null) {
-	          throw new RuntimeException("Error while running command to get " +
-	                                     "file permissions : " + 
-	                                     StringUtils.stringifyException(e));
-	        }
-	      }
+	      } 
+	      catch (Throwable ioe) {
+	    	  throw new RuntimeException(ioe);
+	      } 
 	    }
 
 	    @Override
