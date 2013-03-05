@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
+import org.apache.hadoop.HadoopVersionAnnotation;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -316,7 +317,7 @@ public class GlusterFileSystem extends FileSystem {
 	      IOException e = null;
 	      try {
 	        StringTokenizer t = new StringTokenizer(
-	            Shell.execCommand("ls","-ld",getPath().toUri().getPath()));
+	        		org.apache.hadoop.util.Shell.execCommand("ls","-ld",getPath().toUri().getPath()));
 	        //expected format
 	        //-rw-------    1 username groupname ...
 	        String permission = t.nextToken();
