@@ -24,23 +24,27 @@
 
 package org.apache.hadoop.fs.glusterfs;
 
-import java.io.*;
-import java.net.*;
+import java.io.DataOutput;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 
-import java.util.regex.*;
-
+import org.apache.hadoop.HadoopVersionAnnotation;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
-
-import java.util.TreeMap;
+import org.apache.hadoop.util.StringUtils;
 
 /*
  * This package provides interface for hadoop jobs (incl. Map/Reduce)
@@ -76,23 +80,22 @@ public class GlusterFileSystem extends FileSystem {
 		boolean ret = true;
 		int retVal = 0;
 		Process p = null;
+		String s = null;
 		String mountCmd = null;
 
-		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "+ mount;
-		System.out.println("Running: " + mountCmd);
+		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "
+				+ mount;
+		System.out.println(mountCmd);
 		try {
 			p = Runtime.getRuntime().exec(mountCmd);
-
 			retVal = p.waitFor();
 			if (retVal != 0)
 				ret = false;
 		} 
 		catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Error calling mount, Continuing.., hopefully its already been mounted.");
-			//throw new RuntimeException("Problem mounting FUSE mount on: "+ mount);
+			System.out.println("Problem mounting FUSE mount on: " + mount);
+			throw new RuntimeException(e);
 		}
-
 		return ret;
 	}
 
@@ -108,22 +111,28 @@ public class GlusterFileSystem extends FileSystem {
 		System.out.println("Initializing GlusterFS");
 
 		try {
-			volName = conf.get("fs.glusterfs.volname", null);
-			glusterMount = conf.get("fs.glusterfs.mount", null);
-			remoteGFSServer = conf.get("fs.glusterfs.server", null);
-			needQuickRead = conf.get("quick.slave.io", null);
+			volName = conf.get("fs.glusterfs.volname", "");
+			glusterMount = conf.get("fs.glusterfs.mount", "");
+			remoteGFSServer = conf.get("fs.glusterfs.server", "");
+			needQuickRead = conf.get("quick.slave.io", "");
 
+			/*
+			 * bail out if we do not have enough information to do a FUSE mount
+			 */
 			if ((volName.length() == 0) || (remoteGFSServer.length() == 0)
 					|| (glusterMount.length() == 0))
-				throw new RuntimeException("Not enough info to mount FUSE: volname="+volName + " glustermount=" + glusterMount);
+				throw new RuntimeException(
+						"Not enough info for FUSE Mount : volname=" + volName
+								+ ",server=" + remoteGFSServer
+								+ ",glustermount=" + glusterMount);
 
-			
 			ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			if (!ret) {
-				throw new RuntimeException("Initialize: Failed to mount GlusterFS ");
+				System.out.println("Failed to initialize GlusterFS");
+				System.exit(-1);
 			}
 
-			if((needQuickRead.length() != 0)
+			if ((needQuickRead.length() != 0)
 					&& (needQuickRead.equalsIgnoreCase("yes")
 							|| needQuickRead.equalsIgnoreCase("on") || needQuickRead
 								.equals("1")))
@@ -140,10 +149,10 @@ public class GlusterFileSystem extends FileSystem {
 			this.hostname = addr.getHostName();
 
 			setConf(conf);
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Unable to initialize GlusterFS " + e.getMessage());
+
+		} catch (Exception e) {
+			System.out.println("Unable to initialize GlusterFS");
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -251,7 +260,7 @@ public class GlusterFileSystem extends FileSystem {
 			fileStatus[fileCnt] = getFileStatusFromFileString(relpath
 					+ strFileList[fileCnt]);
 		}
-
+		
 		return fileStatus;
 	}
 
@@ -261,31 +270,129 @@ public class GlusterFileSystem extends FileSystem {
 		return getFileStatus(nPath);
 	}
 
+
+	/**
+	 * Adopted from The Existing raw local file status already implements the equivalent of the FUSE requirements.
+	 */
+	 public class RawLocalFileStatus extends FileStatus {
+	    /* We can add extra fields here. It breaks at least CopyFiles.FilePair().
+	     * We recognize if the information is already loaded by check if
+	     * onwer.equals("").
+	     */
+	    private boolean isPermissionLoaded() {
+	      return !super.getOwner().equals(""); 
+	    }
+	    
+	    RawLocalFileStatus(File f, long defaultBlockSize, FileSystem fs) {
+	      super(f.length(), f.isDirectory(), 1, defaultBlockSize,
+	            f.lastModified(), new Path(f.getPath()).makeQualified(fs));
+	    }
+	    
+	    @Override
+	    public FsPermission getPermission() {
+	      if (!isPermissionLoaded()) {
+	        loadPermissionInfo();
+	      }
+	      return super.getPermission();
+	    }
+
+	    @Override
+	    public String getOwner() {
+	      if (!isPermissionLoaded()) {
+	        loadPermissionInfo();
+	      }
+	      return super.getOwner();
+	    }
+
+	    @Override
+	    public String getGroup() {
+	      if (!isPermissionLoaded()) {
+	        loadPermissionInfo();
+	      }
+	      return super.getGroup();
+	    }
+	    
+	    /// loads permissions, owner, and group from `ls -ld`
+	    private void loadPermissionInfo() {
+	      IOException e = null;
+	      try {
+	        StringTokenizer t = new StringTokenizer(
+	        		org.apache.hadoop.util.Shell.execCommand("ls","-ld",getPath().toUri().getPath()));
+	        //expected format
+	        //-rw-------    1 username groupname ...
+	        String permission = t.nextToken();
+	        if (permission.length() > 10) { //files with ACLs might have a '+'
+	          permission = permission.substring(0, 10);
+	        }
+	        setPermission(FsPermission.valueOf(permission));
+	        t.nextToken();
+	        setOwner(t.nextToken());
+	        setGroup(t.nextToken());
+	      } 
+	      catch (Throwable ioe) {
+	    	  throw new RuntimeException(ioe);
+	      } 
+	    }
+
+	    @Override
+	    public void write(DataOutput out) throws IOException {
+	      if (!isPermissionLoaded()) {
+	        loadPermissionInfo();
+	      }
+	      super.write(out);
+	    }
+	  }
+	
+	private class FUSEFileStatus extends RawLocalFileStatus{
+		File theFile;
+		Path path;
+		boolean isdir;
+		short blockReplication;
+		public FUSEFileStatus(File f, boolean isdir, short block_replication,
+				long blocksize, Path path) {
+			// if its a dir, 0 length
+			super(f, blocksize, GlusterFileSystem.this);
+			/**	super(isdir ? 0 : f.length(), isdir, block_replication, blocksize,
+					f.lastModified(), path);
+					**/
+			this.path=path;
+			this.theFile = f;
+			this.blockReplication=block_replication;
+		}
+		
+		@Override
+		public short getReplication(){
+			return blockReplication;
+		}
+		@Override
+		public boolean isDir(){
+			return isdir;
+		}
+		@Override
+		public Path getPath(){
+			return path;
+		}
+	}
+
 	public FileStatus getFileStatus(Path path) throws IOException {
 		Path absolute = makeAbsolute(path);
-		File f = new File(absolute.toUri().getPath());
+		final File f = new File(absolute.toUri().getPath());
 
 		if (!f.exists())
 			throw new FileNotFoundException("File " + f.getPath()
 					+ " does not exist.");
-
 		FileStatus fs;
+
 		// simple version - should work . we'll see.
+		// TODO COMPARE these w/ original signatures - do we retain the correct
+		// default args?
 		if (f.isDirectory())
-			fs = new FileStatus(0, true, 1, 0, f.lastModified(),
-					path.makeQualified(this)) {
-				public String getOwner() {
-					return "root";
-				}
-			};
+			fs = new FUSEFileStatus(f, true, (short) 1, 0, path.makeQualified(this));
 		else
-			fs = new FileStatus(f.length(), false, 0, getDefaultBlockSize(),
-					f.lastModified(), path.makeQualified(this)) {
-				public String getOwner() {
-					return "root";
-				}
-			};
+			fs = new FUSEFileStatus(f, false, (short) 0, getDefaultBlockSize(),
+					path.makeQualified(this));
 		return fs;
+
 	}
 
 	/*

@@ -27,7 +27,6 @@
 package org.gluster.test;
 
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -35,24 +34,18 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 import org.apache.hadoop.conf.Configuration;
-
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
 import org.apache.tools.ant.util.FileUtils;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 
 /**
@@ -74,7 +67,6 @@ public class TestGluster{
 		FileUtils.delete(tempDirectory);
 	}
 	 
-    
     @BeforeClass
 	public static void before() throws Exception{
     	/* the user can over ride the default gluster volume used for test with ENV var */
@@ -133,6 +125,20 @@ public class TestGluster{
         System.out.println("server " + conf.get("fs.glusterfs.server"));
         gfs.initialize(temp.toURI(), conf);
 	}
+    
+    
+    /**
+     * BZ908898 : Test that confirms that ownership is preserved in 
+     * gluster FileStatus.
+     */
+    @org.junit.Test
+    public void testOwner() throws Exception{
+    	final String me = System.getProperties().getProperty("user.name");    	
+        Path myFile = new Path("to_owned_by_me.txt");
+        gfs.create(myFile);
+        System.out.println("Asserting that " + myFile + " is owned by " + me);
+        Assert.assertEquals(gfs.getFileStatus(myFile).getOwner(),me);
+    }
     
 	@org.junit.Test
 	public void testTextWriteAndRead() throws Exception{
@@ -316,6 +322,17 @@ public class TestGluster{
 	        gfs.delete(baseDir);
 	    }
 	
-	
-	
+		/**
+		 * Confirm that we've faithfully ported over the RawLocalFileStatus 
+		 * code from hadoop.
+		 */
+		@Test
+		public void testPermissions() throws Exception{
+	        Path file1 = new Path("tPERM/foo");
+	        gfs.create(file1);
+	        assertTrue(gfs.exists(file1));
+	        System.out.println(gfs.getFileStatus(file1).getPermission().getGroupAction());
+	        System.out.println(gfs.getFileStatus(file1).getPermission().getUserAction());
+	        System.out.println(gfs.getFileStatus(file1).getPermission().getOtherAction());
+		}
 }
