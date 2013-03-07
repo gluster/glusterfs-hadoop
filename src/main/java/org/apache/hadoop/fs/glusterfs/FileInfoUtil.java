@@ -56,12 +56,23 @@ public class FileInfoUtil {
 	}
 
 	/**
-	 * Converts the output of ls -aFl to a map
+	 * Converts the output of ls -aFl to a map :
+	 * 
+	 * EXPECTED INPUT STRING: 
+	 * -rwxr-xr-x. 1 root root  786 Mar  7 11:42 buildbranch_and_copyjartovms.sh*
+	 * 
+	 * EXPECTED OUTPUT:
+	 * key="owner" -> the owner of the file (root)
+	 * key="permissions" -> the hadoop permissions on the file.
 	 */
 	private static Map<String, String> lsToMap(String ret) {
 		String[] values = ret.split("\\s+");
+		
 		Map<String,String> mm = new TreeMap();
 		mm.put("owner", values[2]);
+		
 		return mm;
 	}
+	
+	
 }

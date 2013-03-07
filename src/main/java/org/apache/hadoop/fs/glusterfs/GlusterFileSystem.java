@@ -24,23 +24,27 @@
 
 package org.apache.hadoop.fs.glusterfs;
 
-import java.io.*;
-import java.net.*;
-
-import java.util.regex.*;
+import java.io.DataOutput;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
-
-import java.util.TreeMap;
+import org.apache.hadoop.util.Shell;
+import org.apache.hadoop.util.StringUtils;
 
 /*
  * This package provides interface for hadoop jobs (incl. Map/Reduce)
@@ -288,15 +292,76 @@ public class GlusterFileSystem extends FileSystem {
 		@Override
 		public String getOwner() {
 			try {
-				return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).get(
-						"owner");
+				return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).
+						get("owner");
 			} 
 			catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
-	}
+		
+		public FsPermission getPermission() {
+			//should be amortized, see method.
+			loadPermissionInfo();
+			return super.getPermission();
+		}
+		
+		boolean permsLoaded=false;
+		private static String execCommand(File f, String... cmd) throws IOException {
+			    String[] args = new String[cmd.length + 1];
+			    System.arraycopy(cmd, 0, args, 0, cmd.length);
+			    args[cmd.length] = f.getCanonicalPath();
+			    String output = Shell.execCommand(args);
+			    return output;
+		}
 
+	    /// loads permissions, owner, and group from `ls -ld`
+	    private void loadPermissionInfo() {
+	    	if (permsLoaded) {
+				return;
+			}
+	    	IOException e = null;
+	      try {
+	    	String output;
+	        StringTokenizer t = new StringTokenizer(
+	            output=execCommand(theFile, 
+	                        Shell.getGET_PERMISSION_COMMAND()));
+	        
+	        System.out.println("Output of PERMISSION command = " + output + " for " + this.getPath());
+	        //expected format
+	        //-rw-------    1 username groupname ...
+	        String permission = t.nextToken();
+	        if (permission.length() > 10) { //files with ACLs might have a '+'
+	          permission = permission.substring(0, 10);
+	        }
+	        setPermission(FsPermission.valueOf(permission));
+	        t.nextToken();
+	        setOwner(t.nextToken());
+	        setGroup(t.nextToken());
+	      } catch (Shell.ExitCodeException ioe) {
+	        if (ioe.getExitCode() != 1) {
+	          e = ioe;
+	        } else {
+	          setPermission(null);
+	          setOwner(null);
+	          setGroup(null);
+	        }
+	        permsLoaded=true;
+	      } 
+	      catch (IOException ioe) {
+	        e = ioe;
+	      } 
+	      finally {
+	        if (e != null) {
+	          throw new RuntimeException("Error while running command to get " +
+	                                     "file permissions : " + 
+	                                     StringUtils.stringifyException(e));
+	        }
+	      }
+	    }
+	  }
+
+	
 	public FileStatus getFileStatus(Path path) throws IOException {
 		Path absolute = makeAbsolute(path);
 		final File f = new File(absolute.toUri().getPath());
