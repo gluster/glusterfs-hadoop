@@ -120,7 +120,7 @@ public class GlusterFileSystem extends FileSystem {
 			
 			ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			if (!ret) {
-				throw new RuntimeException("Initialize: Failed to mount GlusterFS ");
+				//throw new RuntimeException("Initialize: Failed to mount GlusterFS ");
 			}
 
 			if((needQuickRead.length() != 0)
@@ -179,21 +179,16 @@ public class GlusterFileSystem extends FileSystem {
 
 		return f.exists();
 	}
-
-	public boolean mkdirs(Path path, FsPermission permission)
-			throws IOException {
-		boolean created = false;
-		Path absolute = makeAbsolute(path);
-		File f = new File(absolute.toUri().getPath());
-
-		if (f.exists()) {
-			System.out.println("Directory " + f.getPath() + " already exist");
-			return true;
-		}
-
-		return f.mkdirs();
-	}
-
+    public boolean mkdirs(Path f) throws IOException {
+        
+        if(f==null) return true;
+        
+        Path parent = f.getParent();
+        Path absolute = makeAbsolute(f);
+        File p2f = new File(absolute.toUri().getPath());
+        return (f == null || mkdirs(parent)) && (p2f.mkdir() || p2f.isDirectory());
+    }
+   
 	@Deprecated
 	public boolean isDirectory(Path path) throws IOException {
 		Path absolute = makeAbsolute(path);
@@ -514,4 +509,10 @@ public class GlusterFileSystem extends FileSystem {
 			throws IOException {
 		moveFromLocalFile(tmpLocalFile, fsOutputFile);
 	}
+
+    @Override
+    public boolean mkdirs(Path arg0, FsPermission arg1) throws IOException {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }
