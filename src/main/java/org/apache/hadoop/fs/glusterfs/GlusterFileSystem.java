@@ -111,10 +111,10 @@ public class GlusterFileSystem extends FileSystem {
 		System.out.println("Initializing GlusterFS");
 
 		try {
-			volName = conf.get("fs.glusterfs.volname", "");
-			glusterMount = conf.get("fs.glusterfs.mount", "");
-			remoteGFSServer = conf.get("fs.glusterfs.server", "");
-			needQuickRead = conf.get("quick.slave.io", "");
+			volName = conf.get("fs.glusterfs.volname", null);
+			glusterMount = conf.get("fs.glusterfs.mount", null);
+			remoteGFSServer = conf.get("fs.glusterfs.server", null);
+			needQuickRead = conf.get("quick.slave.io", null);
 
 			/*
 			 * bail out if we do not have enough information to do a FUSE mount
@@ -142,7 +142,7 @@ public class GlusterFileSystem extends FileSystem {
 			this.glusterFs = FileSystem.getLocal(conf);
 			this.workingDir = new Path(glusterMount);
 			this.uri = URI.create(uri.getScheme() + "://" + uri.getAuthority());
-
+            System.out.println("hi:!");
 			this.xattr = new GlusterFSXattr();
 
 			InetAddress addr = InetAddress.getLocalHost();
