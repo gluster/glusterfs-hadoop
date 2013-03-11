@@ -21,26 +21,21 @@
  * Implements the Hadoop FileSystem Interface to allow applications to store
  * files on GlusterFS and run Map/Reduce jobs on the data.
  */
-
 package org.apache.hadoop.fs.glusterfs;
 
-import java.io.DataOutput;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
+import java.io.*;
+import java.net.*;
+
+import java.util.regex.*;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.Shell;
@@ -128,11 +123,10 @@ public class GlusterFileSystem extends FileSystem {
 
 			ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			if (!ret) {
-				System.out.println("Failed to initialize GlusterFS");
-				System.exit(-1);
+				throw new RuntimeException("Failed to init Gluster FS);
 			}
 
-			if ((needQuickRead.length() != 0)
+			if((needQuickRead.length() != 0)
 					&& (needQuickRead.equalsIgnoreCase("yes")
 							|| needQuickRead.equalsIgnoreCase("on") || needQuickRead
 								.equals("1")))
@@ -142,16 +136,15 @@ public class GlusterFileSystem extends FileSystem {
 			this.glusterFs = FileSystem.getLocal(conf);
 			this.workingDir = new Path(glusterMount);
 			this.uri = URI.create(uri.getScheme() + "://" + uri.getAuthority());
-            System.out.println("hi:!");
+
 			this.xattr = new GlusterFSXattr();
 
 			InetAddress addr = InetAddress.getLocalHost();
 			this.hostname = addr.getHostName();
 
 			setConf(conf);
-
-		} catch (Exception e) {
-			System.out.println("Unable to initialize GlusterFS");
+		} 
+		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -407,10 +400,29 @@ public class GlusterFileSystem extends FileSystem {
 
 		parent = path.getParent();
 		fParent = new File((makeAbsolute(parent)).toUri().getPath());
-		if ((parent != null) && (fParent != null) && (!fParent.exists()))
-			if (!fParent.mkdirs())
-				throw new IOException("cannot create parent directory: "
-						+ fParent.getPath());
+		if ((parent != null) && (fParent != null) && (!fParent.exists())) {
+			if (!fParent.mkdirs()) {
+				//
+				// File.mkdirs() is not multi-process safe. It is possible for
+				// a peer who is running mkdirs() to cause us to fail. In such
+				// a case, a rudimentary test is to try our exists() test for a
+				// second time. The isDirectory() protects us from exists()
+				// passing when a file is put in place of the directory we were
+				// trying to create. We can be fooled by a directory, or set of
+				// directories in the path, being owned by another user or with
+				// incompatible permissions.
+				//
+				// This could be slightly improved to retry the mkdirs(), which
+				// would cover races deep within the fParent's path. Each
+				// iteration will address one race.
+				//
+				if (!fParent.exists() || !fParent.isDirectory()) {
+					throw new IOException("cannot create parent directory: "
+							+ fParent.getPath());
+				}
+			}
+		}
+
 
 		glusterFileStream = new FSDataOutputStream(new GlusterFUSEOutputStream(
 				f.getPath(), false));
