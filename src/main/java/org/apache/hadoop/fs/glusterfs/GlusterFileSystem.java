@@ -26,6 +26,8 @@ package org.apache.hadoop.fs.glusterfs;
 import java.io.*;
 import java.net.*;
 
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 import java.util.regex.*;
 
 import org.apache.hadoop.conf.Configuration;
@@ -123,7 +125,7 @@ public class GlusterFileSystem extends FileSystem {
 
 			ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			if (!ret) {
-				throw new RuntimeException("Failed to init Gluster FS);
+				throw new RuntimeException("Failed to init Gluster FS");
 			}
 
 			if((needQuickRead.length() != 0)
