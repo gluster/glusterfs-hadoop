@@ -322,7 +322,7 @@ public class GlusterFileSystem extends FileSystem {
 	            output=execCommand(theFile, 
 	                        Shell.getGET_PERMISSION_COMMAND()));
 	        
-	        System.out.println("Output of PERMISSION command = " + output + " for " + this.getPath());
+	        //System.out.println("Output of PERMISSION command = " + output + " for " + this.getPath());
 	        //expected format
 	        //-rw-------    1 username groupname ...
 	        String permission = t.nextToken();
