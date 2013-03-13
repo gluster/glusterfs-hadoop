@@ -27,7 +27,6 @@
 package org.gluster.test;
 
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -35,24 +34,20 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 import org.apache.hadoop.conf.Configuration;
-
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
+import org.apache.hadoop.fs.permission.FsAction;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.tools.ant.util.FileUtils;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 
 /**
@@ -94,7 +89,10 @@ public class TestGluster{
         System.out.println("Testing against host=" + glusterHost);
         System.out.println("Testing against volume=" + glusterVolume);
         
-		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster");
+        /** 
+         * Create a temporary directory for the mount point.
+         */
+		tempDirectory =  new File(System.getProperty("java.io.tmpdir"), "gluster-test-mount-point");
 		tempDirectory.mkdirs();
 		tempDirectory.delete();
 		tempDirectory.mkdir();
@@ -119,10 +117,14 @@ public class TestGluster{
 		gfs = new GlusterFileSystem();
         temp = new File(tempDirectory, "hadoop-temp");
     	mount = new File(tempDirectory, "mount");
+    	
+    	/** 
+    	* We mount to "mount" which is /tmp
+    	*/
     	temp.mkdir();
     	mount.mkdir();
  
-    	System.out.println("Now initializing GlusterFS !");
+    	System.out.println("Now initializing GlusterFS ! - We will mount to " + mount.getAbsolutePath());
 
     	Configuration conf = new Configuration();
     	conf.set("fs.glusterfs.volname", glusterVolume);
@@ -133,7 +135,6 @@ public class TestGluster{
         System.out.println("server " + conf.get("fs.glusterfs.server"));
         gfs.initialize(temp.toURI(), conf);
 	}
-    
     
     
     @org.junit.Test
@@ -161,6 +162,19 @@ public class TestGluster{
         
         
     }
+    /**
+     * BZ908898 : Test that confirms that ownership is preserved in 
+     * gluster FileStatus.
+     */
+    @org.junit.Test
+    public void testOwner() throws Exception{
+    	final String me = System.getProperties().getProperty("user.name");    	
+        Path myFile = new Path("to_owned_by_me.txt");
+        gfs.create(myFile);
+        System.out.println("Asserting that " + myFile + " is owned by " + me);
+        Assert.assertEquals(gfs.getFileStatus(myFile).getOwner(),me);
+    }
+    
 	@org.junit.Test
 	public void testTextWriteAndRead() throws Exception{
 	   
@@ -248,7 +262,7 @@ public class TestGluster{
 	        
 	        gfs.mkdirs(baseDir);
 	        assertTrue(gfs.isDirectory(baseDir));
-	        gfs.setWorkingDirectory(baseDir);
+//	        gfs.setWorkingDirectory(baseDir);
 
 	        gfs.mkdirs(subDir1);
 
@@ -285,7 +299,7 @@ public class TestGluster{
 	        
 	        gfs.mkdirs(baseDir);
 	        assertTrue(gfs.isDirectory(baseDir));
-	        gfs.setWorkingDirectory(baseDir);
+//	        gfs.setWorkingDirectory(baseDir);
 
 	        gfs.mkdirs(subDir1);
 
@@ -338,11 +352,40 @@ public class TestGluster{
 	        gfs.delete(baseDir, true);
 	        assertFalse(gfs.exists(baseDir)); 
 	        
+	        System.out.println("Deleting " + file1.toUri());
 	        gfs.delete(subDir1);
 	        gfs.delete(file1);
 	        gfs.delete(baseDir);
+	        
 	    }
-	
-	
-	
+
+	 	//BZ908899
+	 	@Test
+	 	public void test0aPermissions() throws Exception{
+	        System.out.println("working dir :  " + gfs.getWorkingDirectory());
+	 		Path theFile= new Path("/mnt/glusterfs/changePerms/a");
+	 		
+	 		gfs.create(theFile);
+
+	 		FsPermission originalPermissions = this.gfs.getFileStatus(theFile).getPermission();
+	 		FsPermission changeTo = 
+	 				new FsPermission
+		 						(FsAction.WRITE, 
+		 		 			     FsAction.WRITE,
+		 		 			     FsAction.WRITE);
+	 		this.gfs.setPermission(
+	 				theFile,changeTo);
+
+	 		/**
+	 		 * Sanity check: Assert that the original permissions are different than the ones we changed to.
+	 		 */
+	 		Assert.assertNotSame(originalPermissions, changeTo);
+	 		
+	 		/**
+	 		 * Assert that we indeed changed the privileges to the exact expected values. 
+	 		 */
+	 		Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getGroupAction().equals(changeTo.getGroupAction()));
+	 		Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getUserAction().equals(changeTo.getUserAction()));
+	 		Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getOtherAction().equals(changeTo.getOtherAction()));
+	 	}
 }

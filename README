@@ -44,7 +44,6 @@ INSTALLATION
 
   # ls target/
   classes  glusterfs-0.20.2-0.1.jar  maven-archiver  surefire-reports  test-classes
-               ^^^^^^^^^^^^^^^^^^
 
   Copy the plugin to lib/ directory in your $HADOOP_HOME dir.
 

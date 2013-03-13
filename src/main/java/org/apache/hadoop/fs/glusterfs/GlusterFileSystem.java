@@ -21,12 +21,13 @@
  * Implements the Hadoop FileSystem Interface to allow applications to store
  * files on GlusterFS and run Map/Reduce jobs on the data.
  */
-
 package org.apache.hadoop.fs.glusterfs;
 
 import java.io.*;
 import java.net.*;
 
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 import java.util.regex.*;
 
 import org.apache.hadoop.conf.Configuration;
@@ -39,8 +40,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
-
-import java.util.TreeMap;
+import org.apache.hadoop.util.Shell;
+import org.apache.hadoop.util.StringUtils;
 
 /*
  * This package provides interface for hadoop jobs (incl. Map/Reduce)
@@ -76,23 +77,22 @@ public class GlusterFileSystem extends FileSystem {
 		boolean ret = true;
 		int retVal = 0;
 		Process p = null;
+		String s = null;
 		String mountCmd = null;
 
-		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "+ mount;
-		System.out.println("Running: " + mountCmd);
+		mountCmd = "mount -t glusterfs " + server + ":" + "/" + volname + " "
+				+ mount;
+		System.out.println(mountCmd);
 		try {
 			p = Runtime.getRuntime().exec(mountCmd);
-
 			retVal = p.waitFor();
 			if (retVal != 0)
 				ret = false;
 		} 
 		catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Error calling mount, Continuing.., hopefully its already been mounted.");
-			//throw new RuntimeException("Problem mounting FUSE mount on: "+ mount);
+			System.out.println("Problem mounting FUSE mount on: " + mount);
+			throw new RuntimeException(e);
 		}
-
 		return ret;
 	}
 
@@ -113,14 +113,19 @@ public class GlusterFileSystem extends FileSystem {
 			remoteGFSServer = conf.get("fs.glusterfs.server", null);
 			needQuickRead = conf.get("quick.slave.io", null);
 
+			/*
+			 * bail out if we do not have enough information to do a FUSE mount
+			 */
 			if ((volName.length() == 0) || (remoteGFSServer.length() == 0)
 					|| (glusterMount.length() == 0))
-				throw new RuntimeException("Not enough info to mount FUSE: volname="+volName + " glustermount=" + glusterMount);
+				throw new RuntimeException(
+						"Not enough info for FUSE Mount : volname=" + volName
+								+ ",server=" + remoteGFSServer
+								+ ",glustermount=" + glusterMount);
 
-			
 			ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			if (!ret) {
-				throw new RuntimeException("Initialize: Failed to mount GlusterFS ");
+				throw new RuntimeException("Failed to init Gluster FS");
 			}
 
 			if((needQuickRead.length() != 0)
@@ -142,8 +147,7 @@ public class GlusterFileSystem extends FileSystem {
 			setConf(conf);
 		} 
 		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("Unable to initialize GlusterFS " + e.getMessage());
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -261,31 +265,137 @@ public class GlusterFileSystem extends FileSystem {
 		return getFileStatus(nPath);
 	}
 
+	public static class FUSEFileStatus extends FileStatus {
+		File theFile;
+
+		public FUSEFileStatus(File f) {
+			super();
+			theFile = f;
+		}
+
+		public FUSEFileStatus(File f, boolean isdir, int block_replication,
+				long blocksize, Path path) {
+			// if its a dir, 0 length
+			super(isdir ? 0 : f.length(), isdir, block_replication, blocksize,
+					f.lastModified(), path);
+			theFile = f;
+		}
+
+		/**
+		 * Wrapper to "ls -aFL" - this should fix BZ908898
+		 */
+		@Override
+		public String getOwner() {
+			try {
+				return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).
+						get("owner");
+			} 
+			catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		public FsPermission getPermission() {
+			//should be amortized, see method.
+			loadPermissionInfo();
+			return super.getPermission();
+		}
+		
+		boolean permsLoaded=false;
+		
+	    /// loads permissions, owner, and group from `ls -ld`
+	    private void loadPermissionInfo() {
+	    	if (permsLoaded) {
+				return;
+			}
+	    	IOException e = null;
+	      try {
+	    	String output;
+	        StringTokenizer t = new StringTokenizer(
+	            output=execCommand(theFile, 
+	                        Shell.getGET_PERMISSION_COMMAND()));
+	        
+	        //System.out.println("Output of PERMISSION command = " + output + " for " + this.getPath());
+	        //expected format
+	        //-rw-------    1 username groupname ...
+	        String permission = t.nextToken();
+	        if (permission.length() > 10) { //files with ACLs might have a '+'
+	          permission = permission.substring(0, 10);
+	        }
+	        setPermission(FsPermission.valueOf(permission));
+	        t.nextToken();
+	        setOwner(t.nextToken());
+	        setGroup(t.nextToken());
+	      } catch (Shell.ExitCodeException ioe) {
+	        if (ioe.getExitCode() != 1) {
+	          e = ioe;
+	        } else {
+	          setPermission(null);
+	          setOwner(null);
+	          setGroup(null);
+	        }
+	        permsLoaded=true;
+	      } 
+	      catch (IOException ioe) {
+	        e = ioe;
+	      } 
+	      finally {
+	        if (e != null) {
+	          throw new RuntimeException("Error while running command to get " +
+	                                     "file permissions : " + 
+	                                     StringUtils.stringifyException(e));
+	        }
+	      }
+	    }
+
+	}
+	
+	public static String execCommand(File f, String... cmd) throws IOException {
+		String[] args = new String[cmd.length + 1];
+		System.arraycopy(cmd, 0, args, 0, cmd.length);
+		args[cmd.length] = f.getCanonicalPath();
+		String output = Shell.execCommand(args);
+		return output;
+	}
+
+	/**
+	 * We ultimately use chmod to set permissions, same as in 
+	 * https://svn.apache.org/repos/asf/hadoop/common/branches/HADOOP-3628/src/core/org/apache/hadoop/fs/RawLocalFileSystem.java
+	 */
+	@Override
+	public void setPermission(Path p, FsPermission permission){
+		try{
+			Path absolute = makeAbsolute(p);
+			final File f = new File(absolute.toUri().getPath());
+
+			execCommand(f, Shell.SET_PERMISSION_COMMAND,
+					String.format("%05o", permission.toShort()));
+		}
+		catch(Exception e){
+			throw new RuntimeException(e);
+		}
+	}
+
+	
 	public FileStatus getFileStatus(Path path) throws IOException {
 		Path absolute = makeAbsolute(path);
-		File f = new File(absolute.toUri().getPath());
+		final File f = new File(absolute.toUri().getPath());
 
 		if (!f.exists())
 			throw new FileNotFoundException("File " + f.getPath()
 					+ " does not exist.");
-
 		FileStatus fs;
+
 		// simple version - should work . we'll see.
+		// TODO COMPARE these w/ original signatures - do we retain the correct
+		// default args?
 		if (f.isDirectory())
-			fs = new FileStatus(0, true, 1, 0, f.lastModified(),
-					path.makeQualified(this)) {
-				public String getOwner() {
-					return "root";
-				}
-			};
+			fs = new FUSEFileStatus(f, true, 1, 0, path.makeQualified(this));
 		else
-			fs = new FileStatus(f.length(), false, 0, getDefaultBlockSize(),
-					f.lastModified(), path.makeQualified(this)) {
-				public String getOwner() {
-					return "root";
-				}
-			};
+			fs = new FUSEFileStatus(f, false, 0, getDefaultBlockSize(),
+					path.makeQualified(this));
 		return fs;
+
 	}
 
 	/*
