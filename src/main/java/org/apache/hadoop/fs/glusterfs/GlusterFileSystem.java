@@ -180,18 +180,14 @@ public class GlusterFileSystem extends FileSystem {
 		return f.exists();
 	}
 
-	public boolean mkdirs(Path path, FsPermission permission)
-			throws IOException {
-		boolean created = false;
-		Path absolute = makeAbsolute(path);
-		File f = new File(absolute.toUri().getPath());
-
-		if (f.exists()) {
-			System.out.println("Directory " + f.getPath() + " already exist");
-			return true;
-		}
-
-		return f.mkdirs();
+	public boolean mkdirs(Path f, FsPermission permission) throws IOException {
+	        
+	    if(f==null) return true;
+	        
+	    Path parent = f.getParent();
+	    Path absolute = makeAbsolute(f);
+	    File p2f = new File(absolute.toUri().getPath());
+	    return (f == null || mkdirs(parent)) && (p2f.mkdir() || p2f.isDirectory());
 	}
 
 	@Deprecated
