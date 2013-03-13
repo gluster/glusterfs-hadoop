@@ -302,14 +302,7 @@ public class GlusterFileSystem extends FileSystem {
 		}
 		
 		boolean permsLoaded=false;
-		private static String execCommand(File f, String... cmd) throws IOException {
-			    String[] args = new String[cmd.length + 1];
-			    System.arraycopy(cmd, 0, args, 0, cmd.length);
-			    args[cmd.length] = f.getCanonicalPath();
-			    String output = Shell.execCommand(args);
-			    return output;
-		}
-
+		
 	    /// loads permissions, owner, and group from `ls -ld`
 	    private void loadPermissionInfo() {
 	    	if (permsLoaded) {
@@ -322,7 +315,7 @@ public class GlusterFileSystem extends FileSystem {
 	            output=execCommand(theFile, 
 	                        Shell.getGET_PERMISSION_COMMAND()));
 	        
-	        //System.out.println("Output of PERMISSION command = " + output + " for " + this.getPath());
+	        System.out.println("Output of PERMISSION command = " + output + " for " + this.getPath());
 	        //expected format
 	        //-rw-------    1 username groupname ...
 	        String permission = t.nextToken();
@@ -354,7 +347,29 @@ public class GlusterFileSystem extends FileSystem {
 	        }
 	      }
 	    }
-	  }
+
+	}
+	public static String execCommand(File f, String... cmd) throws IOException {
+		String[] args = new String[cmd.length + 1];
+		System.arraycopy(cmd, 0, args, 0, cmd.length);
+		args[cmd.length] = f.getCanonicalPath();
+		String output = Shell.execCommand(args);
+		return output;
+	}
+
+	@Override
+	public void setPermission(Path p, FsPermission permission){
+		try{
+			Path absolute = makeAbsolute(p);
+			final File f = new File(absolute.toUri().getPath());
+
+			execCommand(f, Shell.SET_PERMISSION_COMMAND,
+					String.format("%05o", permission.toShort()));
+		}
+		catch(Exception e){
+			throw new RuntimeException(e);
+		}
+	}
 
 	
 	public FileStatus getFileStatus(Path path) throws IOException {
