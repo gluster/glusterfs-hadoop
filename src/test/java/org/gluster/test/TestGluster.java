@@ -138,7 +138,7 @@ public class TestGluster{
     
     @org.junit.Test
     public void testTolerantMkdirs() throws Exception{
-       
+        System.out.println("Testing tollerance of mkdirs(a/b/c/d) then mkdirs(a/b/c)");
         Path longPath = new Path("a/b/c/d");
         assertFalse(gfs.exists(longPath));
         gfs.mkdirs(longPath);
