@@ -315,7 +315,7 @@ public class GlusterFileSystem extends FileSystem {
 	            output=execCommand(theFile, 
 	                        Shell.getGET_PERMISSION_COMMAND()));
 	        
-	        System.out.println("Output of PERMISSION command = " + output + " for " + this.getPath());
+	        //System.out.println("Output of PERMISSION command = " + output + " for " + this.getPath());
 	        //expected format
 	        //-rw-------    1 username groupname ...
 	        String permission = t.nextToken();
@@ -349,6 +349,7 @@ public class GlusterFileSystem extends FileSystem {
 	    }
 
 	}
+	
 	public static String execCommand(File f, String... cmd) throws IOException {
 		String[] args = new String[cmd.length + 1];
 		System.arraycopy(cmd, 0, args, 0, cmd.length);
@@ -357,6 +358,10 @@ public class GlusterFileSystem extends FileSystem {
 		return output;
 	}
 
+	/**
+	 * We ultimately use chmod to set permissions, same as in 
+	 * https://svn.apache.org/repos/asf/hadoop/common/branches/HADOOP-3628/src/core/org/apache/hadoop/fs/RawLocalFileSystem.java
+	 */
 	@Override
 	public void setPermission(Path p, FsPermission permission){
 		try{
