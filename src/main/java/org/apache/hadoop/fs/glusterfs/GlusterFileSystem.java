@@ -46,6 +46,13 @@ import java.util.TreeMap;
  * This package provides interface for hadoop jobs (incl. Map/Reduce)
  * to access files in GlusterFS backed file system via FUSE mount
  */
+
+
+/*
+ * 
+ * TODO: Evaluate LocalFileSystem and RawLocalFileSystem as possible delegate file systems to remove & refactor this code.
+ * 
+ */
 public class GlusterFileSystem extends FileSystem {
 
 	private FileSystem glusterFs = null;
@@ -180,6 +187,12 @@ public class GlusterFileSystem extends FileSystem {
 		return f.exists();
 	}
 
+	/*
+	 * Code copied from:
+	 * @see org.apache.hadoop.fs.RawLocalFileSystem#mkdirs(org.apache.hadoop.fs.Path)
+	 * as incremental fix towards a re-write. of this class to remove duplicity.
+	 * 
+	 */
 	public boolean mkdirs(Path f, FsPermission permission) throws IOException {
         
         if(f==null) return true;
