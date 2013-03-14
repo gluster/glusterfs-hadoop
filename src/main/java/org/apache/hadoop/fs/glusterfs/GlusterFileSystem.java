@@ -289,9 +289,10 @@ public class GlusterFileSystem extends FileSystem {
 	 * is an instance of OutputStream class.
 	 */
 	public FSDataOutputStream create(Path path, FsPermission permission,
-			boolean overwrite, int bufferSize, short replication,
+	        boolean overwrite, int bufferSize, short replication,
 			long blockSize, Progressable progress) throws IOException {
-		Path absolute = makeAbsolute(path);
+		
+	    Path absolute = makeAbsolute(path);
 		Path parent = null;
 		File f = null;
 		File fParent = null;
@@ -307,32 +308,9 @@ public class GlusterFileSystem extends FileSystem {
 		}
 
 		parent = path.getParent();
-		fParent = new File((makeAbsolute(parent)).toUri().getPath());
-		if ((parent != null) && (fParent != null) && (!fParent.exists())) {
-			if (!fParent.mkdirs()) {
-				//
-				// File.mkdirs() is not multi-process safe. It is possible for
-				// a peer who is running mkdirs() to cause us to fail. In such
-				// a case, a rudimentary test is to try our exists() test for a
-				// second time. The isDirectory() protects us from exists()
-				// passing when a file is put in place of the directory we were
-				// trying to create. We can be fooled by a directory, or set of
-				// directories in the path, being owned by another user or with
-				// incompatible permissions.
-				//
-				// This could be slightly improved to retry the mkdirs(), which
-				// would cover races deep within the fParent's path. Each
-				// iteration will address one race.
-				//
-				if (!fParent.exists() || !fParent.isDirectory()) {
-					throw new IOException("cannot create parent directory: "
-							+ fParent.getPath());
-				}
-			}
-		}
+		mkdirs(parent);
 
-		glusterFileStream = new FSDataOutputStream(new GlusterFUSEOutputStream(
-				f.getPath(), false));
+		glusterFileStream = new FSDataOutputStream(new GlusterFUSEOutputStream(f.getPath(), false));
 
 		return glusterFileStream;
 	}
