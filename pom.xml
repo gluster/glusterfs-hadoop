@@ -4,15 +4,9 @@
   <groupId>org.apache.hadoop.fs.glusterfs</groupId>
   <artifactId>glusterfs</artifactId>
   <packaging>jar</packaging>
-  <version>0.20.2-0.1-SNAPSHOT</version>
+  <version>0.20.2-0.1</version>
   <name>glusterfs</name>
   <url>http://maven.apache.org</url>
-
-  <!-- Used for formatting the jar with timestamp -->
-  <properties>
-    <maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
-  </properties>
-
   <dependencies>
     <dependency>
 	<groupId>junit</groupId>
@@ -26,7 +20,6 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}</finalName>
     <plugins>
       <plugin>
 		<groupId>org.apache.maven.plugins</groupId>
