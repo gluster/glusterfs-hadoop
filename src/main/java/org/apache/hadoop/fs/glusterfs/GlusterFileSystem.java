@@ -29,8 +29,6 @@ import java.net.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
-import java.util.regex.*;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -203,27 +201,20 @@ public class GlusterFileSystem extends FileSystem {
     }
 
     public boolean exists(Path path) throws IOException {
-        boolean exists;
         synchronized(fuseChannel){
             try{
                 fuseLock = fuseChannel.lock();
                 Path absolute = makeAbsolute(path);
                 File f = new File(absolute.toUri().getPath());
 
-                exists = f.exists();
+                return f.exists();
             }finally{
                 fuseLock.release();
             }
         }
-        return exists;
+      
     }
 
-    /*
-     * Code copied from:
-     * @see org.apache.hadoop.fs.RawLocalFileSystem#mkdirs(org.apache.hadoop.fs.Path)
-     * as incremental fix towards a re-write. of this class to remove duplicity.
-     * 
-     */
     public boolean mkdirs(Path f, FsPermission permission) throws IOException {
         /* had to unspin recursion for the locking */
         String split[] = f.toString().split(f.SEPARATOR);
@@ -237,8 +228,7 @@ public class GlusterFileSystem extends FileSystem {
                     Path absolute = makeAbsolute(new Path(current));
                     File p2f = new File(absolute.toUri().getPath());
                     p2f.mkdirs();
-                    if(p2f.exists())
-                        success = true;
+                    success = p2f.exists();
                 }
             }finally{
                 fuseLock.release();  
@@ -252,17 +242,16 @@ public class GlusterFileSystem extends FileSystem {
     @Deprecated
     public boolean isDirectory(Path path) throws IOException {
         Path absolute = makeAbsolute(path);
-        boolean directory = false;
         synchronized (fuseChannel) {
             try{
                 fuseLock = fuseChannel.lock();
                 File f = new File(absolute.toUri().getPath());
-                directory = f.isDirectory();
+                return f.isDirectory();
             }finally{
                 fuseLock.release();  
             }
         }
-        return directory;
+  
     }
 
     public boolean isFile(Path path) throws IOException {
@@ -309,6 +298,9 @@ public class GlusterFileSystem extends FileSystem {
             try{
                 fuseLock = fuseChannel.lock();
                 exists = f.exists();
+                if(!exists)
+                    return null;
+                
                 isFile = f.isFile();
                 if(!isFile)
                     strFileList = f.list();
@@ -316,9 +308,6 @@ public class GlusterFileSystem extends FileSystem {
                 fuseLock.release();   
             }
         }
-        
-        if(!exists)
-            return null;
         
         if (isFile)
             return new FileStatus[] { getFileStatus(path) };
@@ -340,6 +329,7 @@ public class GlusterFileSystem extends FileSystem {
             throws IOException {
         Path nPath = new Path(path);
         return getFileStatus(nPath);
+        
     }
 
     public FileStatus getFileStatus(Path path) throws IOException {
@@ -355,18 +345,19 @@ public class GlusterFileSystem extends FileSystem {
                 fuseLock = fuseChannel.lock();
                 File f = new File(absolute.toUri().getPath());
                 exists = f.exists();
+     
+                if (!exists)
+                    throw new FileNotFoundException("File " + path
+                            + " does not exist.");
+
                 isDirectory = f.isDirectory();
                 lastModified = f.lastModified();
                 length = f.length();
             }finally{
                 fuseLock.release();    
             }
-           
         }
-        if (!exists)
-            throw new FileNotFoundException("File " + path
-                    + " does not exist.");
-
+       
         FileStatus fs;
         // simple version - should work . we'll see.
         if (isDirectory)
@@ -397,9 +388,6 @@ public class GlusterFileSystem extends FileSystem {
         Path absolute = makeAbsolute(path);
         Path parent = null;
         File f = null;
-        File fParent = null;
-        FSDataOutputStream glusterFileStream = null;
-        boolean exists = false;
         String filePath = null;
         
         synchronized (fuseChannel) {
@@ -421,9 +409,8 @@ public class GlusterFileSystem extends FileSystem {
         parent = path.getParent();
         mkdirs(parent);
 
-        glusterFileStream = new FSDataOutputStream(new GlusterFUSEOutputStream(filePath, false));
-
-        return glusterFileStream;
+       return new FSDataOutputStream(new GlusterFUSEOutputStream(filePath, false));
+       
     }
 
     /*
@@ -435,7 +422,6 @@ public class GlusterFileSystem extends FileSystem {
      */
     public FSDataInputStream open(Path path) throws IOException {
         Path absolute = makeAbsolute(path);
-        
         FSDataInputStream glusterFileStream = null;
         TreeMap<Integer, GlusterFSBrickClass> hnts = null;
         File f = new File(absolute.toUri().getPath());
@@ -453,9 +439,7 @@ public class GlusterFileSystem extends FileSystem {
             }
         }
         
-        glusterFileStream = new FSDataInputStream(new GlusterFUSEInputStream(f,
-                hnts, hostname));
-        return glusterFileStream;
+       return  new FSDataInputStream(new GlusterFUSEInputStream(f, hnts, hostname));
     }
 
     public FSDataInputStream open(Path path, int bufferSize) throws IOException {
@@ -470,10 +454,9 @@ public class GlusterFileSystem extends FileSystem {
     public boolean rename(Path src, Path dst) throws IOException {
         Path absoluteSrc = makeAbsolute(src);
         Path absoluteDst = makeAbsolute(dst);
-
         File fSrc = new File(absoluteSrc.toUri().getPath());
         File fDst = new File(absoluteDst.toUri().getPath());
-        boolean success = false;
+      
         synchronized (fuseChannel) {
             try{
                 fuseLock = fuseChannel.lock();
@@ -483,12 +466,12 @@ public class GlusterFileSystem extends FileSystem {
                             + fSrc.getName();
                     fDst = new File(newPath);
                 }
-                success = fSrc.renameTo(fDst);
+               return fSrc.renameTo(fDst);
             }finally{
                 fuseLock.release();  
             }
         }
-        return success;
+        
     }
 
     @Deprecated
@@ -499,7 +482,7 @@ public class GlusterFileSystem extends FileSystem {
     public boolean delete(Path path, boolean recursive) throws IOException {
         Path absolute = makeAbsolute(path);
         File f = new File(absolute.toUri().getPath());
-        boolean success;
+      
         synchronized (fuseChannel) {
             try{
                 fuseLock = fuseChannel.lock();
@@ -609,7 +592,7 @@ public class GlusterFileSystem extends FileSystem {
 
         Path absolute = makeAbsolute(file.getPath());
         File f = new File(absolute.toUri().getPath());
-        BlockLocation[] result = null;
+        
 
         if (file == null)
             return null;
@@ -617,20 +600,12 @@ public class GlusterFileSystem extends FileSystem {
         synchronized (fuseChannel) {
             try{
                 fuseLock = fuseChannel.lock();
-                result = xattr.getPathInfo(f.getPath(), start, len);
+                return xattr.getPathInfo(f.getPath(), start, len);
         
             }finally{
                 fuseLock.release();  
             }
         }
-        
-        if (result == null) {
-            System.out.println("Problem getting destination host for file "
-                    + f.getPath());
-            return null;
-        }
-
-        return result;
     }
 
     // getFileBlockLocations (FileStatus, long, long) is called by hadoop
@@ -641,27 +616,26 @@ public class GlusterFileSystem extends FileSystem {
 
     public void copyFromLocalFile(boolean delSrc, Path src, Path dst)
             throws IOException {
-        synchronized (fuseChannel) {
-            try{
-                fuseLock = fuseChannel.lock();
-                FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
-            }finally{
-                fuseLock.release();
-            }
-        }
+        /* 
+         * the org.apache.hadoop.fs.FileUtil class circles back to this class for 
+         * raw copy handling.  no need to lock around this since it's done in the 
+         * lower level methods.
+         * 
+         */
+        FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
+        
     }
 
     public void copyToLocalFile(boolean delSrc, Path src, Path dst)
             throws IOException {
-        synchronized (fuseChannel) {
-            try{
-                fuseLock = fuseChannel.lock();
-                FileUtil.copy(this, src, glusterFs, dst, delSrc, getConf());
-            }finally{
-                fuseLock.release();
-            }
-    
-        }
+        /* 
+         * the org.apache.hadoop.fs.FileUtil class circles back to this class for 
+         * raw copy handling.  no need to lock around this since it's done in the 
+         * lower level methods.
+         * 
+         */
+        FileUtil.copy(this, src, glusterFs, dst, delSrc, getConf());
+        
     }
     public Path startLocalOutput(Path fsOutputFile, Path tmpLocalFile)
             throws IOException {
