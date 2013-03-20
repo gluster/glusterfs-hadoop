@@ -174,23 +174,6 @@ public class GlusterFileSystem extends FileSystem {
         }
     }
 
-    private void lockFuse() throws IOException{
-        /* 
-         * synchronizing here might not make a difference since other JVMs may be competing for 
-         * the same file.  
-         * 
-         */
-        synchronized(fuseChannel){
-            fuseLock = fuseChannel.lock();
-        }
-    }
-        
-        
-    private void releaseFuse() throws IOException{
-           fuseLock.release();
-         
-            
-    }
         
     
     @Deprecated
