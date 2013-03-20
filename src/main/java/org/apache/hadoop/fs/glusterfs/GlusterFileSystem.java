@@ -132,11 +132,11 @@ public class GlusterFileSystem extends FileSystem {
 			autoMount = conf.getBoolean("fs.glusterfs.automount", true);
 			
 			/* Figure out the debug level (as integer).  0 is none. */
-			String debugString = conf.get("fs.glusterfs.debug", null);
+			String debugString = conf.get("fs.glusterfs.debug.level", null);
 			if(debugString==null){
 				debug = 0;
 			}else{
-				debug = Integer.parseInt("debugString");
+				debug = Integer.parseInt(debugString);
 			}
 				
 			//selfLock = Boolean.parseBoolean(conf.get("fs.glusterfs.safe.lock", "false"));
@@ -206,6 +206,9 @@ public class GlusterFileSystem extends FileSystem {
 	public boolean exists(Path f) throws IOException {
 		  return getFileStatus(f) != null;
 	}
+	public boolean mkdirs(Path f,  FsPermission permission) throws IOException {
+	    return mkdirs(f,true,permission);
+	}
 
 	/*
 	 * Code copied from:
@@ -213,7 +216,7 @@ public class GlusterFileSystem extends FileSystem {
 	 * as incremental fix towards a re-write. of this class to remove duplicity.
 	 * 
 	 */
-	public boolean mkdirs(Path f, FsPermission permission) throws IOException {
+	public boolean mkdirs(Path f, boolean lock, FsPermission permission) throws IOException {
         
         if(f==null) return true;
             
@@ -221,10 +224,10 @@ public class GlusterFileSystem extends FileSystem {
         Path absolute = makeAbsolute(f);
         File p2f = new File(absolute.toUri().getPath());
         try{
-        	lock(f);	
-        	return (f == null || mkdirs(parent)) && (p2f.mkdir() || p2f.isDirectory());
+        	if(lock) lock(f);	
+        	return (f == null || mkdirs(parent,lock,permission)) && (p2f.mkdir() || p2f.isDirectory());
         }finally{
-        	release(f);
+        	if(lock) release(f);
         }
     }
 
@@ -534,15 +537,20 @@ public class GlusterFileSystem extends FileSystem {
 		 * logic for checking if a file is locked.  First check if the file is locked, 
 		 * then see if any of its parent directories are locked 
 		 */
+	    if("".equals(path.getName())){
+	        Path absolute = makeAbsolute(new Path(""));
+	        File f = new File(absolute.toUri().getPath() + LOCK_FILE_EXTENSION);
+	    }
+	    
 		Path absolute = makeAbsolute(path);
 		File f = new File(absolute.toUri().getPath() + LOCK_FILE_EXTENSION);
 		
 		if(f.exists()) return true;
 
-		Path parent = new Path(f.getParent());
+		Path parent = path.getParent();
 	   
 	    
-	    return f != null &&  isLocked(parent);
+	    return isLocked(parent);
 		
 	}
 	@Deprecated
@@ -551,7 +559,7 @@ public class GlusterFileSystem extends FileSystem {
 	}
 	
 	public void lock(Path path) throws IOException {
-	
+	    if(debug > 0) System.out.println("lock(" + path + ")");
 		/* Sure its deprecated, but lets use it anyways! */
 		while(isLocked(path)){
 			try{
@@ -560,14 +568,22 @@ public class GlusterFileSystem extends FileSystem {
 				throw new IOException("Error while waiting for lock on file: " + path + " Exception:" + ex.getMessage());
 			}
 		}
+		/* root locking */
+		if("".equals(path.getName())){
+            File f = new File("root" + LOCK_FILE_EXTENSION);
+            f.createNewFile();
+        }
+        
+		/* directory + file locking */
+		mkdirs(path.getParent(), false, null);
 		Path absolute = makeAbsolute(path);
 		File f = new File(absolute.toUri().getPath() + LOCK_FILE_EXTENSION);
-		mkdirs(new Path(f.getParent()));
 		f.createNewFile();
 	}
 
 	@Deprecated
 	public void release(Path path) throws IOException {
+	    if(debug > 0) System.out.println("release(" + path + ")");
 		Path absolute = makeAbsolute(path);
 		File f = new File(absolute.toUri().getPath() + LOCK_FILE_EXTENSION);
 		f.delete();
