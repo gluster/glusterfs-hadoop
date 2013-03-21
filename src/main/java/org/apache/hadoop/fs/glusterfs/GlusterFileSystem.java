@@ -592,27 +592,29 @@ public class GlusterFileSystem extends FileSystem {
 	}
 
 	public short getDefaultReplication(Path path) throws IOException {
-	return getReplication(path);
+		return getReplication(path);
 	}
 
-	public boolean setReplication(Path path, short replication) throws IOException {
-	return true;
+	public boolean setReplication(Path path, short replication)
+			throws IOException {
+		return true;
 	}
 
 	public long getBlockSize(Path path) throws IOException {
-	long blkSz;
-	Path absolute = makeAbsolute(path);
-	File f = new File(absolute.toUri().getPath());
-	FileLock fuseLock=null;
+		long blkSz;
+		Path absolute = makeAbsolute(path);
+		File f = new File(absolute.toUri().getPath());
+		FileLock fuseLock=null;
 	
-	synchronized (fuseFileLock) {
-	try{
-	fuseLock = fuseFileLock.getChannel().lock();
-	blkSz = GlusterFSXattr.getBlockSize(f.getPath());
-	}finally{
-	fuseLock.release();  
-	}
-	}
+		synchronized (fuseFileLock) {
+			try{
+				fuseLock = fuseFileLock.getChannel().lock();
+				blkSz = GlusterFSXattr.getBlockSize(f.getPath());
+			}
+			finally{
+				fuseLock.release();  
+			}
+		}
 	
 	if (blkSz == 0)
 	blkSz = getLength(path);
@@ -634,40 +636,46 @@ public class GlusterFileSystem extends FileSystem {
 
 	public BlockLocation[] getFileBlockLocations(FileStatus file, long start, 
 			long len) throws IOException {
+
 	Path absolute = makeAbsolute(file.getPath());
 	File f = new File(absolute.toUri().getPath());
 	FileLock fuseLock=null;
 
 	synchronized (fuseFileLock) {
 	try{
-	fuseLock = fuseFileLock.getChannel().lock();
-	return GlusterFSXattr.getPathInfo(f.getPath(), start, len);
-	
-	}finally{
-	fuseLock.release();  
+		fuseLock = fuseFileLock.getChannel().lock();
+		return GlusterFSXattr.getPathInfo(f.getPath(), start, len);
+	}
+	finally{
+		fuseLock.release();  
 	}
 	}
 	}
 
 	// getFileBlockLocations (FileStatus, long, long) is called by hadoop
-	public BlockLocation[] getFileBlockLocations(Path p, long start, long len) throws IOException {
-	return null;
+	public BlockLocation[] getFileBlockLocations(Path p, long start, long len) 
+			throws IOException {
+		return null;
 	}
 
-	public void copyFromLocalFile(boolean delSrc, Path src, Path dst) throws IOException {
-	FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
+	public void copyFromLocalFile(boolean delSrc, Path src, Path dst)
+			throws IOException {
+		FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
 	}
 
-	public void copyToLocalFile(boolean delSrc, Path src, Path dst) throws IOException {
-	FileUtil.copy(this, src, glusterFs, dst, delSrc, getConf());
-	}
-  
-	public Path startLocalOutput(Path fsOutputFile, Path tmpLocalFile) throws IOException {
-	return tmpLocalFile;
+	public void copyToLocalFile(boolean delSrc, Path src, Path dst)
+			throws IOException {
+		FileUtil.copy(this, src, glusterFs, dst, delSrc, getConf());
 	}
 
-	public void completeLocalOutput(Path fsOutputFile, Path tmpLocalFile) throws IOException {
-	moveFromLocalFile(tmpLocalFile, fsOutputFile);
+	public Path startLocalOutput(Path fsOutputFile, Path tmpLocalFile)
+			throws IOException {
+		return tmpLocalFile;
+	}
+
+	public void completeLocalOutput(Path fsOutputFile, Path tmpLocalFile)
+			throws IOException {
+		moveFromLocalFile(tmpLocalFile, fsOutputFile);
 	}
 	
 	public void finalize(){
