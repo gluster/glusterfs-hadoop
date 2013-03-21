@@ -125,18 +125,14 @@ public class GlusterFileSystem extends FileSystem {
 	
 
 
-			if ((volName.length() == 0) || (remoteGFSServer.length() == 0) 
-					|| (glusterMount.length() == 0)){
+			if ((volName.length() == 0) || (remoteGFSServer.length() == 0)
+					|| (glusterMount.length() == 0))
 				throw new RuntimeException(
-						"Not enough info to mount FUSE: volname="+volName 
-								+ " glustermount=" + glusterMount);
-			}
+						"Not enough info for FUSE Mount : volname=" + volName
+								+ ",server=" + remoteGFSServer
+								+ ",glustermount=" + glusterMount);
 
 	
-	
-	
-
-
 			        if (autoMount) {
 			        	ret = FUSEMount(volName, remoteGFSServer, glusterMount);
 			        	if (!ret) {
