@@ -558,7 +558,9 @@ public class GlusterFileSystem extends FileSystem {
 		Path absolute = makeAbsolute(path);
 		File f = new File(absolute.toUri().getPath());
 	FileLock fuseLock=null;
-	
+
+	//TODO Not sure if we need to explicitly lock on this object - is this just
+	//a semaphore of size 1 ?	
 	synchronized (fuseFileLock) {
 	try{
 	fuseLock = fuseFileLock.getChannel().lock();
