@@ -21,32 +21,32 @@ package org.apache.hadoop.fs.glusterfs;
 
 import java.io.*;
 
-public class GlusterFSBrickRepl {
-        private String[] replHost;
-        private long start;
-        private long len;
-        private int cnt;
+public class GlusterFSBrickRepl{
+    private String[] replHost;
+    private long start;
+    private long len;
+    private int cnt;
 
-        GlusterFSBrickRepl(int replCount, long start, long len) {
-                this.replHost = new String[replCount];
-                this.start = start;
-                this.len = len;
-                this.cnt = 0;
-        }
+    GlusterFSBrickRepl(int replCount, long start, long len){
+        this.replHost=new String[replCount];
+        this.start=start;
+        this.len=len;
+        this.cnt=0;
+    }
 
-        public void addHost (String host) {
-                this.replHost[cnt++] = host;
-        }
+    public void addHost(String host){
+        this.replHost[cnt++]=host;
+    }
 
-        public String[] getReplHosts () {
-                return this.replHost;
-        }
+    public String[] getReplHosts(){
+        return this.replHost;
+    }
 
-        public long getStartLen () {
-                return this.start;
-        }
+    public long getStartLen(){
+        return this.start;
+    }
 
-        public long getOffLen () {
-                return this.len;
-        }
+    public long getOffLen(){
+        return this.len;
+    }
 }

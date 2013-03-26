@@ -8,31 +8,21 @@ import org.apache.hadoop.fs.glusterfs.GlusterFSBrickClass;
 import org.apache.hadoop.fs.glusterfs.GlusterFUSEInputStream;
 import org.junit.Test;
 
-public class TestGlusterFuseInputStream {
+public class TestGlusterFuseInputStream{
 
-	
-	@Test
-	public void testDoubleClose() throws IOException{
-		/**
-		GlusterFUSEInputStream gfi=
-				new GlusterFUSEInputStream (
-					new File(""), 
-					null, 
-					"localhost") ;
-		gfi.close();
-		gfi.close();
-		**/
-	}
-	@Test
-	public void testDoubleClose2() throws IOException{
-		/**
-		GlusterFUSEInputStream gfi=
-				new GlusterFUSEInputStream (
-					new File(""), 
-					null, 
-					"localhost") ;
-		gfi.close();
-		gfi.close();
-		**/
-	}
+    @Test
+    public void testDoubleClose() throws IOException{
+        /**
+         * GlusterFUSEInputStream gfi= new GlusterFUSEInputStream ( new
+         * File(""), null, "localhost") ; gfi.close(); gfi.close();
+         **/
+    }
+
+    @Test
+    public void testDoubleClose2() throws IOException{
+        /**
+         * GlusterFUSEInputStream gfi= new GlusterFUSEInputStream ( new
+         * File(""), null, "localhost") ; gfi.close(); gfi.close();
+         **/
+    }
 }
