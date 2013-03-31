@@ -539,10 +539,6 @@ public class GlusterFileSystem extends FileSystem{
     public void lock(Path path,boolean shared) throws IOException{
     }
 
-    @Deprecated
-    public void release(Path path) throws IOException{
-    }
-
     public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
 
         Path absolute=makeAbsolute(file.getPath());
