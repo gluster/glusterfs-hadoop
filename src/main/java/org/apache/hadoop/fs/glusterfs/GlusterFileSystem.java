@@ -561,11 +561,6 @@ public class GlusterFileSystem extends FileSystem{
         return result;
     }
 
-    // getFileBlockLocations (FileStatus, long, long) is called by hadoop
-    public BlockLocation[] getFileBlockLocations(Path p,long start,long len) throws IOException{
-        return null;
-    }
-
     public void copyFromLocalFile(boolean delSrc,Path src,Path dst) throws IOException{
         FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
     }
