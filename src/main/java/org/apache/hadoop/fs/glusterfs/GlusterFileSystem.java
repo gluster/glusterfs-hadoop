@@ -536,10 +536,6 @@ public class GlusterFileSystem extends FileSystem{
     }
 
     @Deprecated
-    public void lock(Path path,boolean shared) throws IOException{
-    }
-
-    @Deprecated
     public void release(Path path) throws IOException{
     }
 
