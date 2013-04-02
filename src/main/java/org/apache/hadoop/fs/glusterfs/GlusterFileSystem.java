@@ -535,10 +535,6 @@ public class GlusterFileSystem extends FileSystem{
         return 1<<26; /* default's from hdfs, kfs */
     }
 
-    @Deprecated
-    public void release(Path path) throws IOException{
-    }
-
     public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
 
         Path absolute=makeAbsolute(file.getPath());
