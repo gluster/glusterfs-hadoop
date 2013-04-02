@@ -43,6 +43,9 @@ import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.Shell;
 import org.apache.hadoop.util.StringUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * This package provides interface for hadoop jobs (incl. Map/Reduce)
  * to access files in GlusterFS backed file system via FUSE mount
@@ -54,6 +57,8 @@ import org.apache.hadoop.util.StringUtils;
  * 
  */
 public class GlusterFileSystem extends FileSystem{
+	
+	static final Logger log = LoggerFactory.getLogger(GlusterFileSystem.class);
 
     private FileSystem glusterFs=null;
     private URI uri=null;
@@ -61,6 +66,7 @@ public class GlusterFileSystem extends FileSystem{
     private String glusterMount=null;
     private boolean mounted=false;
 
+    
     /* for quick IO */
     private boolean quickSlaveIO=false;
 
@@ -86,14 +92,14 @@ public class GlusterFileSystem extends FileSystem{
         String mountCmd=null;
 
         mountCmd="mount -t glusterfs "+server+":"+"/"+volname+" "+mount;
-        System.out.println(mountCmd);
+        log.info(mountCmd);
         try{
             p=Runtime.getRuntime().exec(mountCmd);
             retVal=p.waitFor();
             if(retVal!=0)
                 ret=false;
         }catch (IOException e){
-            System.out.println("Problem mounting FUSE mount on: "+mount);
+            log.info("Problem mounting FUSE mount on: "+mount);
             throw new RuntimeException(e);
         }
         return ret;
@@ -109,7 +115,7 @@ public class GlusterFileSystem extends FileSystem{
         if(this.mounted)
             return;
 
-        System.out.println("Initializing GlusterFS");
+        log.info("Initializing GlusterFS");
 
         try{
             volName=conf.get("fs.glusterfs.volname", null);
@@ -314,7 +320,7 @@ public class GlusterFileSystem extends FileSystem{
                 String output;
                 StringTokenizer t=new StringTokenizer(output=execCommand(theFile, Shell.getGET_PERMISSION_COMMAND()));
 
-                // System.out.println("Output of PERMISSION command = " + output
+                // log.info("Output of PERMISSION command = " + output
                 // + " for " + this.getPath());
                 // expected format
                 // -rw------- 1 username groupname ...
@@ -546,7 +552,7 @@ public class GlusterFileSystem extends FileSystem{
 
         result=xattr.getPathInfo(f.getPath(), start, len);
         if(result==null){
-            System.out.println("Problem getting destination host for file "+f.getPath());
+            log.info("Problem getting destination host for file "+f.getPath());
             return null;
         }
 
