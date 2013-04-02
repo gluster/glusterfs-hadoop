@@ -535,10 +535,6 @@ public class GlusterFileSystem extends FileSystem{
         return 1<<26; /* default's from hdfs, kfs */
     }
 
-    @Deprecated
-    public void lock(Path path,boolean shared) throws IOException{
-    }
-
     public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
 
         Path absolute=makeAbsolute(file.getPath());
@@ -555,11 +551,6 @@ public class GlusterFileSystem extends FileSystem{
         }
 
         return result;
-    }
-
-    // getFileBlockLocations (FileStatus, long, long) is called by hadoop
-    public BlockLocation[] getFileBlockLocations(Path p,long start,long len) throws IOException{
-        return null;
     }
 
     public void copyFromLocalFile(boolean delSrc,Path src,Path dst) throws IOException{
