@@ -33,7 +33,7 @@ public class GlusterFUSEOutputStream extends OutputStream{
     public GlusterFUSEOutputStream(String file, boolean append) throws IOException{
         this.f=new File(file); /* not needed ? */
         this.pos=0;
-        this.fuseOutputStream=new FileOutputStream(file, append);
+        this.fuseOutputStream=new BufferedOutputStream(new FileOutputStream(file, append));
         this.closed=false;
     }
 
