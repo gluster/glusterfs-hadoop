@@ -21,9 +21,6 @@ package org.apache.hadoop.fs.glusterfs;
 
 import java.io.*;
 
-import org.apache.hadoop.fs.FSOutputSummer;
-import org.apache.hadoop.fs.FileSystem;
-
 public class GlusterFUSEOutputStream extends OutputStream{
     File f;
     long pos;
@@ -31,12 +28,17 @@ public class GlusterFUSEOutputStream extends OutputStream{
     OutputStream fuseOutputStream;
 
     public GlusterFUSEOutputStream(String file, boolean append) throws IOException{
-        this.f=new File(file); /* not needed ? */
-        this.pos=0;
-        this.fuseOutputStream=new BufferedOutputStream(new FileOutputStream(file, append));
-        this.closed=false;
+        this(file,append,0);
     }
 
+    public GlusterFUSEOutputStream(String file, boolean append, int bufferSize) throws IOException{
+        this.f=new File(file); /* not needed ? */
+        this.pos=0;
+        this.fuseOutputStream=(bufferSize==0) ? new FileOutputStream(file, append) : new BufferedOutputStream(new FileOutputStream(file, append), bufferSize);
+        this.closed=false;
+    }
+    
+    
     public long getPos() throws IOException{
         return pos;
     }

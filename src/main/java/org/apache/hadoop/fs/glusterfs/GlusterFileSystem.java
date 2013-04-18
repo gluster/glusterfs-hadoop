@@ -23,26 +23,26 @@
  */
 package org.apache.hadoop.fs.glusterfs;
 
-import java.io.*;
-import java.net.*;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-import java.util.regex.*;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.Shell;
 import org.apache.hadoop.util.StringUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,6 +65,7 @@ public class GlusterFileSystem extends FileSystem{
     private Path workingDir=null;
     private String glusterMount=null;
     private boolean mounted=false;
+    private int writeBufferSize = 0;
 
     
     /* for quick IO */
@@ -111,6 +112,7 @@ public class GlusterFileSystem extends FileSystem{
         String remoteGFSServer=null;
         String needQuickRead=null;
         boolean autoMount=true;
+        
 
         if(this.mounted)
             return;
@@ -123,7 +125,7 @@ public class GlusterFileSystem extends FileSystem{
             remoteGFSServer=conf.get("fs.glusterfs.server", null);
             needQuickRead=conf.get("quick.slave.io", null);
             autoMount=conf.getBoolean("fs.glusterfs.automount", true);
-
+            writeBufferSize = conf.getInt("fs.glusterfs.write.buffer.size", 0);
             /*
              * bail out if we do not have enough information to do a FUSE mount
              */
@@ -421,7 +423,7 @@ public class GlusterFileSystem extends FileSystem{
         parent=path.getParent();
         mkdirs(parent);
 
-        glusterFileStream=new FSDataOutputStream(new GlusterFUSEOutputStream(f.getPath(), false));
+        glusterFileStream=new FSDataOutputStream(new GlusterFUSEOutputStream(f.getPath(), false, writeBufferSize));
 
         return glusterFileStream;
     }
