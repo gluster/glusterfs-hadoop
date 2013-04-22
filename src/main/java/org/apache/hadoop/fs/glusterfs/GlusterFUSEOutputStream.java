@@ -21,22 +21,29 @@ package org.apache.hadoop.fs.glusterfs;
 
 import java.io.*;
 
-import org.apache.hadoop.fs.FSOutputSummer;
-import org.apache.hadoop.fs.FileSystem;
-
 public class GlusterFUSEOutputStream extends OutputStream{
     File f;
     long pos;
     boolean closed;
     OutputStream fuseOutputStream;
-
+    org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(GlusterFUSEOutputStream.class);
+  
     public GlusterFUSEOutputStream(String file, boolean append) throws IOException{
-        this.f=new File(file); /* not needed ? */
-        this.pos=0;
-        this.fuseOutputStream=new FileOutputStream(file, append);
-        this.closed=false;
+        this(file,append,0);
     }
 
+    /**
+     * @param bufferSize : Size of buffer in bytes (if 0, then no buffer will be used).
+     */
+    public GlusterFUSEOutputStream(String file, boolean append, int bufferSize) throws IOException{
+        this.f=new File(file); /* not needed ? */
+        this.pos=0;
+        fuseOutputStream=new FileOutputStream(file, append) ;
+        if(bufferSize > 0)
+        	fuseOutputStream = new BufferedOutputStream(fuseOutputStream, bufferSize);
+        this.closed=false;
+    }
+    
     public long getPos() throws IOException{
         return pos;
     }
