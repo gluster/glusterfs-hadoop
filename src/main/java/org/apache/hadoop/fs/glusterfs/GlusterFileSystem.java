@@ -126,6 +126,7 @@ public class GlusterFileSystem extends FileSystem{
             needQuickRead=conf.get("quick.slave.io", null);
             autoMount=conf.getBoolean("fs.glusterfs.automount", true);
             writeBufferSize = conf.getInt("fs.glusterfs.write.buffer.size", 0);
+            LOG.info("Gluster Output Buffering size configured to " + writeBufferSize + " bytes.");
             /*
              * bail out if we do not have enough information to do a FUSE mount
              */
