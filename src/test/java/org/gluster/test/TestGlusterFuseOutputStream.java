@@ -15,20 +15,22 @@ public class TestGlusterFuseOutputStream {
 
 	@Test
     public void testOutputStream() throws IOException{
-      File out = new File("/tmp/testGlusterFuseOutputStream");
-      
+      File out = new File("/tmp/testGlusterFuseOutputStream"+System.currentTimeMillis());
+      out.createNewFile();
       //Create a 3 byte FuseOutputStream
       final GlusterFUSEOutputStream stream = new GlusterFUSEOutputStream(out.getAbsolutePath(), true, 3);
       
       stream.write("ab".getBytes());
-      
-      long sizeBeforeFlush = out.length();
+      System.out.println(out.length());
+
+      Assert.assertEquals(0, out.length());
       
       stream.flush();
       stream.close();
       
+      System.out.println(out.length());
       //Confirm that the buffer held 100 bytes.
-      Assert.assertTrue(out.length() > sizeBeforeFlush);
+      Assert.assertEquals(2, out.length());
       out.delete();
     }
 }
