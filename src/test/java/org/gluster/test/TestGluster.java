@@ -154,7 +154,7 @@ public class TestGluster{
 
         /* delete the directories */
 
-        gfs.delete(longPath);
+        gfs.delete(new Path("a"), true);
         assertFalse(gfs.exists(longPath));
 
     }
@@ -168,8 +168,8 @@ public class TestGluster{
         final String me=System.getProperties().getProperty("user.name");
         Path myFile=new Path("to_owned_by_me.txt");
         gfs.create(myFile);
-        System.out.println("Asserting that "+myFile+" is owned by "+me);
         Assert.assertEquals(gfs.getFileStatus(myFile).getOwner(), me);
+        gfs.delete(myFile);
     }
 
     @org.junit.Test
@@ -194,6 +194,62 @@ public class TestGluster{
         gfs.delete(new Path("test1.txt"), true);
 
         assertFalse(gfs.exists(new Path("test1")));
+    }
+
+    @Test
+    public void testGroupOwnership() throws Exception{
+        Path myFile=new Path("filePerm.txt");
+        //Create a file 
+        gfs.create(myFile);
+        
+        //Set the initial owner
+        gfs.setOwner(myFile, "daemon", "root");
+        String oldOwner = gfs.getFileStatus(myFile).getOwner(); 
+        String oldGroup = gfs.getFileStatus(myFile).getGroup();
+        Assert.assertEquals("daemon",oldOwner);
+        Assert.assertEquals("root",oldGroup);
+        
+        //Now, change it to "root" "wheel" 
+        gfs.setOwner(myFile, "root", "wheel");
+        String newOwner = gfs.getFileStatus(myFile).getOwner(); 
+        String newGroup = gfs.getFileStatus(myFile).getGroup();
+        Assert.assertEquals("root",newOwner);
+        Assert.assertEquals("wheel",newGroup);
+        
+    }
+    
+    @org.junit.Test
+    public void testPermissions() throws Exception{
+
+        Path myFile=new Path("filePerm.txt");
+        gfs.create(myFile);
+        short perm=0777;
+        gfs.setPermission(myFile, new FsPermission(perm));
+        assertEquals(gfs.getFileStatus(myFile).getPermission().toShort(), perm);
+
+        perm=0700;
+        gfs.setPermission(myFile, new FsPermission(perm));
+        assertEquals(gfs.getFileStatus(myFile).getPermission().toShort(), perm);
+
+        gfs.delete(myFile);
+        assertFalse(gfs.exists(myFile));
+        
+        /* directory permissions */
+        Path directory = new Path("aa/bb/cc");
+        perm = 0700;
+        gfs.mkdirs(directory, new FsPermission(perm));
+        assertEquals(gfs.getFileStatus(directory).getPermission().toShort(), perm);
+        gfs.delete(new Path("aa"),true);
+        assertFalse(gfs.exists(directory));
+        
+        
+        perm = 0777;
+        gfs.mkdirs(directory, new FsPermission(perm));
+        assertEquals(gfs.getFileStatus(directory).getPermission().toShort(), perm);
+        gfs.delete(new Path("aa"),true);
+        assertFalse(gfs.exists(directory));
+        
+
     }
 
     @org.junit.Test
@@ -378,5 +434,7 @@ public class TestGluster{
         Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getGroupAction().equals(changeTo.getGroupAction()));
         Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getUserAction().equals(changeTo.getUserAction()));
         Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getOtherAction().equals(changeTo.getOtherAction()));
+        gfs.delete(new Path("mnt"),true);
+        
     }
 }

@@ -20,14 +20,16 @@
 package org.apache.hadoop.fs.glusterfs;
 
 import java.io.*;
-
+/**
+ * An OutputStream for writing to a FUSE mount intended for use with gluster. 
+ */
 public class GlusterFUSEOutputStream extends OutputStream{
     File f;
     long pos;
     boolean closed;
     OutputStream fuseOutputStream;
     org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(GlusterFUSEOutputStream.class);
-  
+
     public GlusterFUSEOutputStream(String file, boolean append) throws IOException{
         this(file,append,0);
     }
@@ -43,7 +45,6 @@ public class GlusterFUSEOutputStream extends OutputStream{
         	fuseOutputStream = new BufferedOutputStream(fuseOutputStream, bufferSize);
         this.closed=false;
     }
-    
     public long getPos() throws IOException{
         return pos;
     }
