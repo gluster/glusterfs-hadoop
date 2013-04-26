@@ -216,6 +216,7 @@ public class TestGluster{
         Assert.assertEquals("root",newOwner);
         Assert.assertEquals("wheel",newGroup);
         
+        gfs.delete(myFile,true);
     }
     
     @org.junit.Test
@@ -248,8 +249,6 @@ public class TestGluster{
         assertEquals(gfs.getFileStatus(directory).getPermission().toShort(), perm);
         gfs.delete(new Path("aa"),true);
         assertFalse(gfs.exists(directory));
-        
-
     }
 
     @org.junit.Test
