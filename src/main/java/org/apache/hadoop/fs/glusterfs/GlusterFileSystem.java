@@ -203,15 +203,24 @@ public class GlusterFileSystem extends FileSystem{
      * org.apache.hadoop.fs.RawLocalFileSystem#mkdirs(org.apache.hadoop.fs.Path)
      * as incremental fix towards a re-write. of this class to remove duplicity.
      */
-    public boolean mkdirs(Path f,FsPermission permission) throws IOException{
-
-        if(f==null)
-            return true;
-
-        Path parent=f.getParent();
-        Path absolute=makeAbsolute(f);
-        File p2f=new File(absolute.toUri().getPath());
-        return (f==null||mkdirs(parent))&&(p2f.mkdir()||p2f.isDirectory());
+    public boolean mkdirs(Path path,FsPermission permission) throws IOException{
+      
+            String split[]=path.toString().split(Path.SEPARATOR);
+            String current="";
+            boolean success=true;
+            for(int i=0;i<split.length&&success;i++){
+                current+=split[i]+Path.SEPARATOR;
+                Path absolute=makeAbsolute(new Path(current));
+                File p2f=new File(absolute.toUri().getPath());
+                if(!p2f.exists()){
+                    p2f.mkdirs();
+                    setPermission(new Path(current), permission);
+                }
+                success=p2f.exists();
+            }
+       
+            return success;
+       
     }
 
     @Deprecated
@@ -298,14 +307,18 @@ public class GlusterFileSystem extends FileSystem{
          */
         @Override
         public String getOwner(){
-            try{
-                return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).get("owner");
-            }catch (Exception e){
-                throw new RuntimeException(e);
-            }
+             loadPermissionInfo();
+             return super.getOwner();
         }
+        
 
-        public FsPermission getPermission(){
+		@Override
+		public String getGroup() {
+            loadPermissionInfo();
+			return super.getGroup();
+		}
+
+		public FsPermission getPermission(){
             // should be amortized, see method.
             loadPermissionInfo();
             return super.getPermission();
@@ -322,7 +335,6 @@ public class GlusterFileSystem extends FileSystem{
             try{
                 String output;
                 StringTokenizer t=new StringTokenizer(output=execCommand(theFile, Shell.getGET_PERMISSION_COMMAND()));
-
                 // log.info("Output of PERMISSION command = " + output
                 // + " for " + this.getPath());
                 // expected format
@@ -371,6 +383,9 @@ public class GlusterFileSystem extends FileSystem{
      */
     @Override
     public void setPermission(Path p,FsPermission permission){
+        
+        if(permission==null) return;
+        
         try{
             Path absolute=makeAbsolute(p);
             final File f=new File(absolute.toUri().getPath());
@@ -409,7 +424,7 @@ public class GlusterFileSystem extends FileSystem{
         Path absolute=makeAbsolute(path);
         Path parent=null;
         File f=null;
-        File fParent=null;
+      
         FSDataOutputStream glusterFileStream=null;
 
         f=new File(absolute.toUri().getPath());
@@ -422,7 +437,10 @@ public class GlusterFileSystem extends FileSystem{
         }
 
         parent=path.getParent();
-        mkdirs(parent);
+        mkdirs(parent, permission);
+        
+        f.createNewFile();
+        setPermission(path, permission);
 
         glusterFileStream=new FSDataOutputStream(new GlusterFUSEOutputStream(f.getPath(), false, writeBufferSize));
 
@@ -494,7 +512,7 @@ public class GlusterFileSystem extends FileSystem{
         if(dirEntries!=null)
             for(int i=0;i<dirEntries.length;i++)
                 delete(new Path(absolute, dirEntries[i].getPath()), recursive);
-
+   
         return f.delete();
     }
 
@@ -562,8 +580,31 @@ public class GlusterFileSystem extends FileSystem{
         return result;
     }
 
+    /**
+     * Adopted from {@link org.apache.hadoop.RawLocalFileSystem}, so that group privileges are
+     * set properly when hadoop fs chwon is called in {@link org.apache.hadoop.fs.FSShellPermissions}.
+     */
+    @Override
+    public void setOwner(Path p, String username, String groupname) throws IOException {
+        Path absolute=makeAbsolute(p);
+        File f=new File(absolute.toUri().getPath());
+
+    	if (username == null && groupname == null) {
+    	  throw new IOException("username == null && groupname == null");
+      }
+
+      if (username == null) {
+        execCommand(f, Shell.SET_GROUP_COMMAND, groupname); 
+      } 
+      else {
+        //OWNER[:[GROUP]]
+        String s = username + (groupname == null? "": ":" + groupname);
+        execCommand(f, Shell.SET_OWNER_COMMAND, s);
+      }
+    }
+    
     public void copyFromLocalFile(boolean delSrc,Path src,Path dst) throws IOException{
-        FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
+    	FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
     }
 
     public void copyToLocalFile(boolean delSrc,Path src,Path dst) throws IOException{
