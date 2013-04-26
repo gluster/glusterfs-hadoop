@@ -509,8 +509,7 @@ public class GlusterFileSystem extends FileSystem{
         return f.length();
     }
 
-    @Deprecated
-    public short getReplication(Path path) throws IOException{
+    public short getDefaultReplication(Path path) throws IOException{
         Path absolute=makeAbsolute(path);
         File f=new File(absolute.toUri().getPath());
 
@@ -518,10 +517,6 @@ public class GlusterFileSystem extends FileSystem{
             throw new IOException(f.getPath()+" does not exist.");
 
         return xattr.getReplication(f.getPath());
-    }
-
-    public short getDefaultReplication(Path path) throws IOException{
-        return getReplication(path);
     }
 
     public boolean setReplication(Path path,short replication) throws IOException{
