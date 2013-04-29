@@ -68,9 +68,6 @@ public class GlusterFileSystem extends FileSystem{
     private int writeBufferSize = 0;
 
     
-    /* for quick IO */
-    private boolean quickSlaveIO=false;
-
     /* extended attribute class */
     private GlusterFSXattr xattr=null;
 
@@ -110,7 +107,6 @@ public class GlusterFileSystem extends FileSystem{
         boolean ret=false;
         String volName=null;
         String remoteGFSServer=null;
-        String needQuickRead=null;
         boolean autoMount=true;
         
 
@@ -123,7 +119,6 @@ public class GlusterFileSystem extends FileSystem{
             volName=conf.get("fs.glusterfs.volname", null);
             glusterMount=conf.get("fs.glusterfs.mount", null);
             remoteGFSServer=conf.get("fs.glusterfs.server", null);
-            needQuickRead=conf.get("quick.slave.io", null);
             autoMount=conf.getBoolean("fs.glusterfs.automount", true);
             writeBufferSize = conf.getInt("fs.glusterfs.write.buffer.size", 0);
             LOG.info("Gluster Output Buffering size configured to " + writeBufferSize + " bytes.");
@@ -144,8 +139,6 @@ public class GlusterFileSystem extends FileSystem{
                     throw new RuntimeException("Initialize: Failed to mount GlusterFS ");
                 }
             }
-            if((needQuickRead.length()!=0)&&(needQuickRead.equalsIgnoreCase("yes")||needQuickRead.equalsIgnoreCase("on")||needQuickRead.equals("1")))
-                this.quickSlaveIO=true;
 
             this.mounted=true;
             this.glusterFs=FileSystem.getLocal(conf);
@@ -451,8 +444,6 @@ public class GlusterFileSystem extends FileSystem{
      * open the file in read mode (internally the file descriptor is an instance
      * of InputStream class).
      * 
-     * if quick read mode is set then read the file by by-passing FUSE if we are
-     * on same slave where the file exist
      */
     public FSDataInputStream open(Path path) throws IOException{
         Path absolute=makeAbsolute(path);
@@ -462,9 +453,6 @@ public class GlusterFileSystem extends FileSystem{
 
         if(!f.exists())
             throw new IOException("File "+f.getPath()+" does not exist.");
-
-        if(quickSlaveIO)
-            hnts=xattr.quickIOPossible(f.getPath(), 0, f.length());
 
         glusterFileStream=new FSDataInputStream(new GlusterFUSEInputStream(f, hnts, hostname));
         return glusterFileStream;

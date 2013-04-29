@@ -123,17 +123,6 @@ CONFIGURATION
          To mount a volume the plugin needs to know the hostname or the IP of a GlusterFS server in the cluster.
          Mention it here.
 
-  name:  quick.slave.io
-  value: [On/Off], [Yes/No], [1/0]
-
-         NOTE: This option is not tested as of now.
-
-         This is a performance tunable option. Hadoop schedules jobs to hosts that contain the file data part. The job
-         then does I/O on the file (via FUSE in case of GlusterFS). When this option is set, the plugin will try to
-         do I/O directly from the backed filesystem (ext3, ext4 etc..) the file resides on. Hence read performance
-         will improve and job would run faster.
-
-
 USAGE
 -----
 
@@ -152,7 +141,7 @@ FOR HACKERS
 
 org.apache.hadoop.fs.glusters/GlusterFSBrickClass.java
 org.apache.hadoop.fs.glusters/GlusterFSXattr.java            <--- Fetch/Parse Extended Attributes of a file
-org.apache.hadoop.fs.glusters/GlusterFUSEInputStream.java    <--- Input Stream (instantiated during open() calls; quick read from backed FS)
+org.apache.hadoop.fs.glusters/GlusterFUSEInputStream.java    <--- Input Stream (instantiated during open() calls; 
 org.apache.hadoop.fs.glusters/GlusterFSBrickRepl.java
 org.apache.hadoop.fs.glusters/GlusterFUSEOutputStream.java   <--- Output Stream (instantiated during creat() calls)
 org.apache.hadoop.fs.glusters/GlusterFileSystem.java         <--- Entry Point for the plugin (extends Hadoop FileSystem class)
