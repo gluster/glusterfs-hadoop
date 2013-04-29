@@ -537,10 +537,6 @@ public class GlusterFileSystem extends FileSystem{
         return xattr.getReplication(f.getPath());
     }
 
-    public boolean setReplication(Path path,short replication) throws IOException{
-        return true;
-    }
-
     public long getBlockSize(Path path) throws IOException{
         long blkSz;
         Path absolute=makeAbsolute(path);
