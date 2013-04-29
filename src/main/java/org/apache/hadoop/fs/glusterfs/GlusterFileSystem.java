@@ -23,25 +23,28 @@
  */
 package org.apache.hadoop.fs.glusterfs;
 
-import java.io.*;
-import java.net.*;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-import java.util.regex.*;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.Shell;
 import org.apache.hadoop.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * This package provides interface for hadoop jobs (incl. Map/Reduce)
@@ -54,13 +57,17 @@ import org.apache.hadoop.util.StringUtils;
  * 
  */
 public class GlusterFileSystem extends FileSystem{
+	
+	static final Logger log = LoggerFactory.getLogger(GlusterFileSystem.class);
 
     private FileSystem glusterFs=null;
     private URI uri=null;
     private Path workingDir=null;
     private String glusterMount=null;
     private boolean mounted=false;
+    private int writeBufferSize = 0;
 
+    
     /* for quick IO */
     private boolean quickSlaveIO=false;
 
@@ -86,14 +93,14 @@ public class GlusterFileSystem extends FileSystem{
         String mountCmd=null;
 
         mountCmd="mount -t glusterfs "+server+":"+"/"+volname+" "+mount;
-        System.out.println(mountCmd);
+        log.info(mountCmd);
         try{
             p=Runtime.getRuntime().exec(mountCmd);
             retVal=p.waitFor();
             if(retVal!=0)
                 ret=false;
         }catch (IOException e){
-            System.out.println("Problem mounting FUSE mount on: "+mount);
+            log.info("Problem mounting FUSE mount on: "+mount);
             throw new RuntimeException(e);
         }
         return ret;
@@ -105,11 +112,12 @@ public class GlusterFileSystem extends FileSystem{
         String remoteGFSServer=null;
         String needQuickRead=null;
         boolean autoMount=true;
+        
 
         if(this.mounted)
             return;
 
-        System.out.println("Initializing GlusterFS");
+        log.info("Initializing GlusterFS");
 
         try{
             volName=conf.get("fs.glusterfs.volname", null);
@@ -117,7 +125,8 @@ public class GlusterFileSystem extends FileSystem{
             remoteGFSServer=conf.get("fs.glusterfs.server", null);
             needQuickRead=conf.get("quick.slave.io", null);
             autoMount=conf.getBoolean("fs.glusterfs.automount", true);
-
+            writeBufferSize = conf.getInt("fs.glusterfs.write.buffer.size", 0);
+            LOG.info("Gluster Output Buffering size configured to " + writeBufferSize + " bytes.");
             /*
              * bail out if we do not have enough information to do a FUSE mount
              */
@@ -194,15 +203,24 @@ public class GlusterFileSystem extends FileSystem{
      * org.apache.hadoop.fs.RawLocalFileSystem#mkdirs(org.apache.hadoop.fs.Path)
      * as incremental fix towards a re-write. of this class to remove duplicity.
      */
-    public boolean mkdirs(Path f,FsPermission permission) throws IOException{
-
-        if(f==null)
-            return true;
-
-        Path parent=f.getParent();
-        Path absolute=makeAbsolute(f);
-        File p2f=new File(absolute.toUri().getPath());
-        return (f==null||mkdirs(parent))&&(p2f.mkdir()||p2f.isDirectory());
+    public boolean mkdirs(Path path,FsPermission permission) throws IOException{
+      
+            String split[]=path.toString().split(Path.SEPARATOR);
+            String current="";
+            boolean success=true;
+            for(int i=0;i<split.length&&success;i++){
+                current+=split[i]+Path.SEPARATOR;
+                Path absolute=makeAbsolute(new Path(current));
+                File p2f=new File(absolute.toUri().getPath());
+                if(!p2f.exists()){
+                    p2f.mkdirs();
+                    setPermission(new Path(current), permission);
+                }
+                success=p2f.exists();
+            }
+       
+            return success;
+       
     }
 
     @Deprecated
@@ -289,14 +307,18 @@ public class GlusterFileSystem extends FileSystem{
          */
         @Override
         public String getOwner(){
-            try{
-                return FileInfoUtil.getLSinfo(theFile.getAbsolutePath()).get("owner");
-            }catch (Exception e){
-                throw new RuntimeException(e);
-            }
+             loadPermissionInfo();
+             return super.getOwner();
         }
+        
 
-        public FsPermission getPermission(){
+		@Override
+		public String getGroup() {
+            loadPermissionInfo();
+			return super.getGroup();
+		}
+
+		public FsPermission getPermission(){
             // should be amortized, see method.
             loadPermissionInfo();
             return super.getPermission();
@@ -313,8 +335,7 @@ public class GlusterFileSystem extends FileSystem{
             try{
                 String output;
                 StringTokenizer t=new StringTokenizer(output=execCommand(theFile, Shell.getGET_PERMISSION_COMMAND()));
-
-                // System.out.println("Output of PERMISSION command = " + output
+                // log.info("Output of PERMISSION command = " + output
                 // + " for " + this.getPath());
                 // expected format
                 // -rw------- 1 username groupname ...
@@ -362,6 +383,9 @@ public class GlusterFileSystem extends FileSystem{
      */
     @Override
     public void setPermission(Path p,FsPermission permission){
+        
+        if(permission==null) return;
+        
         try{
             Path absolute=makeAbsolute(p);
             final File f=new File(absolute.toUri().getPath());
@@ -400,7 +424,7 @@ public class GlusterFileSystem extends FileSystem{
         Path absolute=makeAbsolute(path);
         Path parent=null;
         File f=null;
-        File fParent=null;
+      
         FSDataOutputStream glusterFileStream=null;
 
         f=new File(absolute.toUri().getPath());
@@ -413,9 +437,12 @@ public class GlusterFileSystem extends FileSystem{
         }
 
         parent=path.getParent();
-        mkdirs(parent);
+        mkdirs(parent, permission);
+        
+        f.createNewFile();
+        setPermission(path, permission);
 
-        glusterFileStream=new FSDataOutputStream(new GlusterFUSEOutputStream(f.getPath(), false));
+        glusterFileStream=new FSDataOutputStream(new GlusterFUSEOutputStream(f.getPath(), false, writeBufferSize));
 
         return glusterFileStream;
     }
@@ -485,7 +512,7 @@ public class GlusterFileSystem extends FileSystem{
         if(dirEntries!=null)
             for(int i=0;i<dirEntries.length;i++)
                 delete(new Path(absolute, dirEntries[i].getPath()), recursive);
-
+   
         return f.delete();
     }
 
@@ -500,8 +527,7 @@ public class GlusterFileSystem extends FileSystem{
         return f.length();
     }
 
-    @Deprecated
-    public short getReplication(Path path) throws IOException{
+    public short getDefaultReplication(Path path) throws IOException{
         Path absolute=makeAbsolute(path);
         File f=new File(absolute.toUri().getPath());
 
@@ -509,10 +535,6 @@ public class GlusterFileSystem extends FileSystem{
             throw new IOException(f.getPath()+" does not exist.");
 
         return xattr.getReplication(f.getPath());
-    }
-
-    public short getDefaultReplication(Path path) throws IOException{
-        return getReplication(path);
     }
 
     public boolean setReplication(Path path,short replication) throws IOException{
@@ -535,14 +557,6 @@ public class GlusterFileSystem extends FileSystem{
         return 1<<26; /* default's from hdfs, kfs */
     }
 
-    @Deprecated
-    public void lock(Path path,boolean shared) throws IOException{
-    }
-
-    @Deprecated
-    public void release(Path path) throws IOException{
-    }
-
     public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
 
         Path absolute=makeAbsolute(file.getPath());
@@ -554,20 +568,38 @@ public class GlusterFileSystem extends FileSystem{
 
         result=xattr.getPathInfo(f.getPath(), start, len);
         if(result==null){
-            System.out.println("Problem getting destination host for file "+f.getPath());
+            log.info("Problem getting destination host for file "+f.getPath());
             return null;
         }
 
         return result;
     }
 
-    // getFileBlockLocations (FileStatus, long, long) is called by hadoop
-    public BlockLocation[] getFileBlockLocations(Path p,long start,long len) throws IOException{
-        return null;
-    }
+    /**
+     * Adopted from {@link org.apache.hadoop.RawLocalFileSystem}, so that group privileges are
+     * set properly when hadoop fs chwon is called in {@link org.apache.hadoop.fs.FSShellPermissions}.
+     */
+    @Override
+    public void setOwner(Path p, String username, String groupname) throws IOException {
+        Path absolute=makeAbsolute(p);
+        File f=new File(absolute.toUri().getPath());
 
+    	if (username == null && groupname == null) {
+    	  throw new IOException("username == null && groupname == null");
+      }
+
+      if (username == null) {
+        execCommand(f, Shell.SET_GROUP_COMMAND, groupname); 
+      } 
+      else {
+        //OWNER[:[GROUP]]
+        String s = username + (groupname == null? "": ":" + groupname);
+        execCommand(f, Shell.SET_OWNER_COMMAND, s);
+      }
+    }
+    
     public void copyFromLocalFile(boolean delSrc,Path src,Path dst) throws IOException{
-        FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
+    	FileUtil.copy(glusterFs, src, this, dst, delSrc, getConf());
     }
 
     public void copyToLocalFile(boolean delSrc,Path src,Path dst) throws IOException{
