@@ -130,7 +130,6 @@ public class TestGluster{
         conf.set("fs.glusterfs.mount", mount.getAbsolutePath());
         conf.set("fs.glusterfs.server", glusterHost);
         conf.set("fs.default.name", "glusterfs://"+glusterHost+":9000");
-        conf.set("quick.slave.io", "true");
         System.out.println("server "+conf.get("fs.glusterfs.server"));
         gfs.initialize(temp.toURI(), conf);
     }
