@@ -1,0 +1,6 @@
+#
+# Example sudoers entry (or just place this file in /etc/sudoers.d/ with 0644)
+#
+# mapred user allow no password root access to getfattr command.  required to read brick location
+# 
+mapred ALL= NOPASSWD: /usr/bin/getfattr 
