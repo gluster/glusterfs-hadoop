@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.apache.hadoop.fs.BlockLocation;
+import org.mortbay.log.Log;
 
 public class GlusterFSXattr{
 
@@ -135,15 +136,15 @@ public class GlusterFSXattr{
 
         HashMap<String, ArrayList<String>> vol=new HashMap<String, ArrayList<String>>();
 
-        getfattrCmd="getfattr -m . -n trusted.glusterfs.pathinfo "+filename;
-
+        getfattrCmd="sudo getfattr -m . -n trusted.glusterfs.pathinfo "+filename;
+        
         p=Runtime.getRuntime().exec(getfattrCmd);
         brInput=new BufferedReader(new InputStreamReader(p.getInputStream()));
 
         cmdOut="";
         while ((s=brInput.readLine())!=null)
             cmdOut+=s;
-
+    
         /**
          * TODO: Use a single regex for extracting posix paths as well as xlator
          * counts for layout matching.
