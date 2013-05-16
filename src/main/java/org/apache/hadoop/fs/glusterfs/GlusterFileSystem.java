@@ -140,7 +140,7 @@ public class GlusterFileSystem extends FileSystem{
             this.workingDir=new Path(glusterMount);
             this.uri=URI.create(uri.getScheme()+"://"+uri.getAuthority());
 
-            this.xattr=new GlusterFSXattr();
+            this.xattr=new GlusterFSXattr(conf);
 
             InetAddress addr=InetAddress.getLocalHost();
             this.hostname=addr.getHostName();
