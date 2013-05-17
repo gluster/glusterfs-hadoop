@@ -63,12 +63,23 @@ public class GlusterDebugFileSystem extends GlusterFileSystem{
 
     private static File logFile=null;
     private static final String LOG_PREFIX="/tmp/glusterfs";
-
+    private static boolean showStackTrace = true;
+    
+    public static synchronized String getStackTrace(int stripTopElements){
+        StackTraceElement[] trace = Thread.currentThread().getStackTrace();
+        String traceString = "";
+        // remove the specified top elements of the stack trace (to avoid debug methods in the trace). the +1 is for this methods call.
+        for(int i=stripTopElements+1;i<trace.length;i++){
+            traceString += "\t[" + trace[i].getFileName() + "] " +  trace[i].getClassName() +  "." + trace[i].getMethodName() +  "() line:" + trace[i].getLineNumber() + "\n";
+        }
+        
+        return traceString;
+    }
+    
     public static synchronized void logMachine(String text){
 
         DateFormat dateFormat=new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         Date date=new Date();
-
         if(logFile==null){
             for(int i=0;i<1000000;i++){
                 logFile=new File(LOG_PREFIX+"-"+i+".log");
@@ -84,7 +95,9 @@ public class GlusterDebugFileSystem extends GlusterFileSystem{
 
         try{
             PrintWriter out=new PrintWriter(new BufferedWriter(new FileWriter(logFile, true)));
-            out.write(dateFormat.format(date)+" : "+text+"\n");
+            out.write("(" + dateFormat.format(date)+") : "+text+"\n");
+            String stackTrace = GlusterDebugFileSystem.getStackTrace(3);
+            if(showStackTrace) out.write(stackTrace);
             out.close();
         }catch (FileNotFoundException e){
             e.printStackTrace();
