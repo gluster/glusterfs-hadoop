@@ -89,11 +89,13 @@ public class GlusterFUSEInputStream extends FSInputStream{
     public synchronized int available() throws IOException{
         return (int) ((f.length())-getPos());
     }
-
-    public void seek(long pos) throws IOException{
-        fuseInputStream.seek(pos);
+    
+    public void seek(long newPos) throws IOException{
+        fuseInputStream.seek(newPos);
         if(fsInputStream!=null)
-            fsInputStream.seek(pos);
+            fsInputStream.seek(newPos);
+        //Important for any seek app: HBASE checks explicitly that position after seek is correct.
+        this.pos=newPos;
     }
 
     public boolean seekToNewSource(long pos) throws IOException{
