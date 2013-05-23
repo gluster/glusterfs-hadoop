@@ -10,15 +10,15 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class TestGlusterFuseInputStream{
-	final String infile = "/mnt/glusterfs/testGFIStream";
+	String infile ;
 
 	@Before
 	public void create() throws Exception{
-		//setup
+		//setup: no need for gluster specific path, since its just reading from local path
+	    infile=File.createTempFile("TestGlusterFuseInputStream"+System.currentTimeMillis(),"txt").getAbsolutePath();
 		final GlusterFUSEOutputStream stream = new GlusterFUSEOutputStream(infile,true);
 		stream.write("hello there, certainly, there is some data in this stream".getBytes());
 		stream.close();
-		
 	}
 	
     @Test
