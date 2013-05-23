@@ -249,7 +249,7 @@ public class TestGluster{
         gfs.delete(new Path("aa"),true);
         assertFalse(gfs.exists(directory));
     }
-
+    
     @org.junit.Test
     public void testZDirs() throws Exception{
         final Path subDir1=new Path("td_dir.1");
@@ -434,5 +434,17 @@ public class TestGluster{
         Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getOtherAction().equals(changeTo.getOtherAction()));
         gfs.delete(new Path("mnt"),true);
         
+    }
+
+
+    @Test
+    public void testCreateNR() throws Exception{
+    	Path nonrec = new Path("nonrec");
+    	this.gfs.createNonRecursive(
+    			new Path("nonrec"),
+    			FsPermission.valueOf("-rwxrwxrwx"), 
+    			true, 100, (short)0, 0L, null);
+    	Assert.assertTrue(this.gfs.exists(new Path("nonrec")));
+    	this.gfs.delete(nonrec);
     }
 }
