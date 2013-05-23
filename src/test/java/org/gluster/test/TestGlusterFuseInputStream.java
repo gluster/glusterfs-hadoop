@@ -23,10 +23,6 @@ public class TestGlusterFuseInputStream{
 		stream.close();
 	}
 	
-	@After
-	public void cleanUp() throws Exception{
-	    new File(infile).delete();
-	}
     @Test
     public void testDoubleClose() throws Exception{
     	 //test
