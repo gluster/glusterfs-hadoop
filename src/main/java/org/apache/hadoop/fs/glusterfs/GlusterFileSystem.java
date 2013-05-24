@@ -569,7 +569,7 @@ public class GlusterFileSystem extends FileSystem{
 
       if (username == null) {
         execCommand(f, Shell.SET_GROUP_COMMAND, groupname); 
-      } 
+      }
       else {
         //OWNER[:[GROUP]]
         String s = username + (groupname == null? "": ":" + groupname);
@@ -591,5 +591,18 @@ public class GlusterFileSystem extends FileSystem{
 
     public void completeLocalOutput(Path fsOutputFile,Path tmpLocalFile) throws IOException{
         moveFromLocalFile(tmpLocalFile, fsOutputFile);
+    }
+
+    /**
+     * Taken from https://github.com/quantcast/qfs/pull/21/files, a non
+     * recursive create implementation to support HBASE.
+     */
+    public FSDataOutputStream createNonRecursive(Path file,FsPermission permission,boolean overwrite,int bufferSize,short replication,long blockSize,Progressable progress) throws IOException{
+        Path parent=file.getParent();
+        if(parent==null||exists(parent)){
+            return create(file, permission, overwrite, bufferSize, replication, blockSize, progress);
+        }else{
+            throw new IOException("Parent "+parent+" does not exist");
+        }
     }
 }
