@@ -35,6 +35,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.tools.ant.util.FileUtils;
@@ -48,21 +49,19 @@ import org.junit.Test;
  * 
  */
 public class TestGluster{
-
     
-    static GlusterFileSystemForTest gfs ; 
+    static GlusterFileSystem gfs ; 
     
     @BeforeClass
     public static void setup() throws Exception {
-        gfs=new GlusterFileSystemForTest();
+        gfs= GFSUtil.create();
     }
     
     @AfterClass
     public static void after() throws IOException{
         gfs.close();
-        FileUtils.delete(gfs.getTempDirectory());
+        FileUtils.delete(GFSUtil.getTempDirectory());
     }
-    
 
     @org.junit.Test
     public void testTolerantMkdirs() throws Exception{

@@ -11,10 +11,10 @@ import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
 import org.junit.BeforeClass;
 
 /**
- * A file system specifically for testing.
+ * A file system specifically for testing the GlusterFileSystem class.
+ * Provides a getter for a singleton instance of a {@link GlusterFileSystem}.
  */
-public class GlusterFileSystemForTest extends GlusterFileSystem{
-
+public class GFSUtil {
     
     public static Configuration initializeConfig(File mount) throws Exception{
         String glusterVolume=System.getProperty("gluster-volume");
@@ -64,8 +64,8 @@ public class GlusterFileSystemForTest extends GlusterFileSystem{
         return conf;
     }
     
-    boolean tempCreated = false;
-    public File getTempDirectory(){
+    static boolean tempCreated = false;
+    public static File getTempDirectory(){
         final File tempDirectory=new File(System.getProperty("java.io.tmpdir"), "gluster-test-mount-point");
 
         //initialize?
@@ -78,28 +78,41 @@ public class GlusterFileSystemForTest extends GlusterFileSystem{
         return tempDirectory;
     }
     
-    public File initializeMounts(File tempDirectory) throws Exception {
+    public static File initializeMounts(File tempDirectory) throws Exception {
         File mount=new File(tempDirectory, "mount");
         mount.mkdir();
         return mount;
     }
-    
-    public GlusterFileSystemForTest( ) throws Exception{
-        super();
+
+    /**
+     * Singleton - only expose one GFS at a time.
+     */
+    static GlusterFileSystem gfs ;
+
+    /**
+     * Use this method to create a new instance of a gluster file system class.
+     */
+    public static GlusterFileSystem create( ) throws Exception{
+        if(gfs != null){
+            gfs.close();
+        }
         
+        gfs = new GlusterFileSystem();
         //Setup the temp directory.  
-        final File mount = this.initializeMounts(getTempDirectory());
+        final File mount = initializeMounts(getTempDirectory());
         
         //Now set up the config object
-        final Configuration conf = this.initializeConfig(mount);
+        final Configuration conf = initializeConfig(mount);
         
         //Initialize GlusterFileSystem
-        super.initialize(getTempDirectory().toURI(), conf);
+        gfs.initialize(getTempDirectory().toURI(), conf);
 
         System.out.println("server "+conf.get("fs.glusterfs.server"));
 
         //FYI, we fs.default.name is something like "glusterfs://127.0.0.1:9000") 
-        super.initialize(new URI(conf.get("fs.default.name")), conf);
+        gfs.initialize(new URI(conf.get("fs.default.name")), conf);
+        
+        return gfs;
     }
-
+    
 }
