@@ -200,6 +200,9 @@ public class GlusterFileSystem extends FileSystem{
                 current+=split[i]+Path.SEPARATOR;
                 Path absolute=makeAbsolute(new Path(current));
                 File p2f=new File(absolute.toUri().getPath());
+                if(p2f.isFile()){
+                    throw new IOException(p2f.getAbsolutePath() + " is a file! Can't have children.");
+                }
                 if(!p2f.exists()){
                     p2f.mkdirs();
                     setPermission(new Path(current), permission);
@@ -468,6 +471,14 @@ public class GlusterFileSystem extends FileSystem{
         File fSrc=new File(absoluteSrc.toUri().getPath());
         File fDst=new File(absoluteDst.toUri().getPath());
 
+        /**
+         * Fix for bug uncovered by TestFileSystemBaseContract.testRenameFileAsExistingFile.
+         */
+        if(fDst.exists()){
+            log.info("Cannot rename " + src + " to " + dst + " : destination already exists.");
+            return false;
+        }
+            
         if(fDst.isDirectory()){
             fDst=null;
             String newPath=absoluteDst.toUri().getPath()+"/"+fSrc.getName();
