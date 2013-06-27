@@ -21,7 +21,6 @@ package org.apache.hadoop.fs.glusterfs;
 
 import java.io.*;
 
-import org.mortbay.log.Log;
 /**
  * An OutputStream for writing to a FUSE mount intended for use with gluster. 
  */
