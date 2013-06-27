@@ -28,6 +28,9 @@ public class TestGlusterFuseOutputStream {
       stream.flush();
       stream.close();
       
+      //Add a second close, this shouldnt cause failure.
+      stream.close();
+      
       System.out.println(out.length());
       //Confirm that the buffer held 100 bytes.
       Assert.assertEquals(2, out.length());
