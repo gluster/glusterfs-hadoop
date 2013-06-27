@@ -200,6 +200,9 @@ public class GlusterFileSystem extends FileSystem{
                 current+=split[i]+Path.SEPARATOR;
                 Path absolute=makeAbsolute(new Path(current));
                 File p2f=new File(absolute.toUri().getPath());
+                if(p2f.exists() && ! p2f.isDirectory()){
+                    throw new IOException(p2f.getAbsolutePath() + " is not a directory !");
+                }
                 if(!p2f.exists()){
                     p2f.mkdirs();
                     setPermission(new Path(current), permission);
