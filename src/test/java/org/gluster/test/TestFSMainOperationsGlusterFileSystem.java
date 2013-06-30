@@ -26,7 +26,7 @@ public class TestFSMainOperationsGlusterFileSystem extends FSMainOperationsBaseT
   static Path wd = null;
   protected Path getDefaultWorkingDirectory() throws IOException {
     if (wd == null)
-      wd = FileSystem.getLocal(new Configuration()).getWorkingDirectory();
+      wd = fSys.getWorkingDirectory();
     return wd;
   }
 
