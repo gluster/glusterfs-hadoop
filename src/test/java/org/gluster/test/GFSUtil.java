@@ -61,7 +61,8 @@ public class GFSUtil {
         conf.set("fs.glusterfs.mount", mount.getAbsolutePath());
         conf.set("fs.glusterfs.server", glusterHost);
         conf.set("fs.default.name", "glusterfs://"+glusterHost+":9000");
-
+        //Not necessary - but for 1.0 might be.
+        conf.set("fs.glusterfs.impl", "org.apache.hadoop.fs.glusterfs.GlusterFileSystem");
         return conf;
     }
     
@@ -91,10 +92,7 @@ public class GFSUtil {
      */
     static GlusterFileSystem gfs ;
 
-    /**
-     * Use this method to create a new instance of a gluster file system class.
-     */
-    public static GlusterFileSystem create(boolean automount) throws Exception{
+    public static Configuration createConfiguration(boolean automount) throws Exception{
         if(gfs != null){
             gfs.close();
         }
@@ -105,7 +103,14 @@ public class GFSUtil {
         
         //Now set up the config object, with automount=true
         final Configuration conf = initializeConfig(mount,automount);
-        
+        return conf;
+    }
+    /**
+     * Use this method to create a new instance of a gluster file system class.
+     */
+    public static GlusterFileSystem create(boolean automount) throws Exception{
+
+        Configuration conf = createConfiguration(automount);
         //Initialize GlusterFileSystem
         gfs.initialize(getTempDirectory().toURI(), conf);
 
