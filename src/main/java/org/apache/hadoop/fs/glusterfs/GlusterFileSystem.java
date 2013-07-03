@@ -113,7 +113,7 @@ public class GlusterFileSystem extends FileSystem{
         if(this.mounted)
             return;
 
-        log.info("Initializing GlusterFS");
+        log.info("Initializing GlusterFS " + new Version().toString().replace(",","\n"));
 
         try{
             volName=conf.get("fs.glusterfs.volname", null);
