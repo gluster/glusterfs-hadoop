@@ -42,7 +42,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     
     protected String root=null;
     
-    protected static final GlusterFSXattr attr = new GlusterFSXattr();
+    protected static GlusterFSXattr attr = null;
     
     public GlusterVolume(){}
     
@@ -55,10 +55,18 @@ public class GlusterVolume extends RawLocalFileSystem{
     public void setConf(Configuration conf){
         log.info("initializing gluster volume..");
         super.setConf(conf);
+        String getfattrcmd = null;
         if(conf!=null){
          
             try{
                 root=conf.get("fs.glusterfs.mount", null);
+                getfattrcmd = conf.get("fs.glusterfs.getfattrcmd", null);
+                if(getfattrcmd!=null){
+                	attr = new GlusterFSXattr(getfattrcmd);
+                }else{
+                	attr = new GlusterFSXattr();
+                }
+                
                 //volName=conf.get("fs.glusterfs.volname", null);
                 //remoteGFSServer=conf.get("fs.glusterfs.server", null);
                 

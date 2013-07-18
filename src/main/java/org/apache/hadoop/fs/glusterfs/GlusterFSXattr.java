@@ -43,9 +43,16 @@ public class GlusterFSXattr{
 
     private static String hostname;
 
-   private String getFattrCmdBase = "sudo getfattr -m . -n trusted.glusterfs.pathinfo";
-
+   private String getFattrCmdBase = null;
+   
+   public GlusterFSXattr(String getAttr) {
+       getFattrCmdBase=getAttr;
+   }
   
+   public GlusterFSXattr(){
+	   getFattrCmdBase = "sudo getfattr -m . -n trusted.glusterfs.pathinfo";
+   }
+   
     public String brick2host(String brick) throws IOException{
         String[] hf=null;
 
