@@ -468,6 +468,14 @@ public class GlusterFileSystem extends FileSystem{
         File fSrc=new File(absoluteSrc.toUri().getPath());
         File fDst=new File(absoluteDst.toUri().getPath());
 
+        /**
+         * Fix for bug uncovered by TestFileSystemBaseContract.testRenameFileAsExistingFile.
+         */
+        if(fDst.exists()){
+            log.info("Cannot rename " + src + " to " + dst + " : destination already exists.");
+            return false;
+        }
+            
         if(fDst.isDirectory()){
             fDst=null;
             String newPath=absoluteDst.toUri().getPath()+"/"+fSrc.getName();

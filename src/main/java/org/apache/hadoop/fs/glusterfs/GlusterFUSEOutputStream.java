@@ -20,6 +20,7 @@
 package org.apache.hadoop.fs.glusterfs;
 
 import java.io.*;
+
 /**
  * An OutputStream for writing to a FUSE mount intended for use with gluster. 
  */
@@ -83,8 +84,10 @@ public class GlusterFUSEOutputStream extends OutputStream{
     }
 
     public void close() throws IOException{
-        if(closed)
-            throw new IOException("Stream closed.");
+        if(closed){
+            LOG.warn("stream.close() called, but is closed already.  Ignoring.");
+            return;
+        }
 
         flush();
         fuseOutputStream.close();
