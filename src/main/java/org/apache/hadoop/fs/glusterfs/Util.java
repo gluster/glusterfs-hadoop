@@ -1,6 +1,6 @@
 /**
  *
- * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
+ * Copyright (c) 2013 Red Hat, Inc. <http://www.redhat.com>
  * This file is part of GlusterFS.
  *
  * Licensed under the Apache License, Version 2.0
@@ -15,36 +15,28 @@
  * implied. See the License for the specific language governing
  * permissions and limitations under the License.
  *
+ * Implements the Hadoop FileSystem Interface to allow applications to store
+ * files on GlusterFS and run Map/Reduce jobs on the data.
+ * 
+ * 
  */
 
 package org.apache.hadoop.fs.glusterfs;
 
-public class GlusterFSBrickRepl{
-    private String[] replHost;
-    private long start;
-    private long len;
-    private int cnt;
+import java.io.File;
+import java.io.IOException;
 
-    GlusterFSBrickRepl(int replCount, long start, long len){
-        this.replHost=new String[replCount];
-        this.start=start;
-        this.len=len;
-        this.cnt=0;
-    }
+import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.util.Shell;
 
-    public void addHost(String host){
-        this.replHost[cnt++]=host;
-    }
+public class Util{
 
-    public String[] getReplHosts(){
-        return this.replHost;
-    }
+   public static String execCommand(File f, String... cmd) throws IOException {
+    String[] args = new String[cmd.length + 1];
+    System.arraycopy(cmd, 0, args, 0, cmd.length);
+    args[cmd.length] = FileUtil.makeShellPath(f, true);
+    String output = Shell.execCommand(args);
+    return output;
+  }
 
-    public long getStartLen(){
-        return this.start;
-    }
-
-    public long getOffLen(){
-        return this.len;
-    }
 }

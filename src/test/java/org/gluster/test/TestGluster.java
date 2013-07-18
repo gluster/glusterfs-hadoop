@@ -367,14 +367,4 @@ public class TestGluster{
         
     }
 
-    @Test
-    public void testCreateNR() throws Exception{
-    	Path nonrec = new Path("nonrec");
-    	this.gfs.createNonRecursive(
-    			new Path("nonrec"),
-    			FsPermission.valueOf("-rwxrwxrwx"), 
-    			true, 100, (short)0, 0L, null);
-    	Assert.assertTrue(this.gfs.exists(new Path("nonrec")));
-    	this.gfs.delete(nonrec);
-    }
 }
