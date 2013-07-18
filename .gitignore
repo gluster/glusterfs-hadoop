@@ -1,3 +1,4 @@
+src/main/resources/git.properties
 target/
 .project
 .classpath
