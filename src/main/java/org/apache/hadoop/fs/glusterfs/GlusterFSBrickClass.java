@@ -49,7 +49,6 @@ public class GlusterFSBrickClass{
 
     public String brickIsLocal(String hostname){
         String path=null;
-        File f=null;
         if(host.equals(hostname))
             path=exportedFile;
 
