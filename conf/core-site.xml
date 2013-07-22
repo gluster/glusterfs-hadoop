@@ -12,8 +12,15 @@
 
   <property>
     <name>fs.default.name</name>
-    <value>glusterfs://RHS-1:9000</value>
+    <value>glusterfs://ambari-3.abrv8.com:gv0<</value>
   </property>
+
+  <property>
+    <name>fs.AbstractFileSystem.glusterfs.impl</name>
+    <value>org.apache.hadoop.fs.local.GlusterFs</value> 
+  </property>
+
+
 
   <property>
     <name>fs.glusterfs.volname</name>
@@ -30,8 +37,6 @@
     <value>RHS-1</value>
   </property>
 
-  <property>
-  <name>fs.glusterfs.write.buffer.size</name>
-  <value>1024</value>
-  </property>
+  
+  
 </configuration>
