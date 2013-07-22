@@ -1,0 +1,23 @@
+<!--Sun Jun  9 13:00:26 2013-->
+<configuration>
+  <property>
+    <name>yarn.app.mapreduce.am.staging-dir</name>
+    <value>glusterfs:///tmp/hadoop-yarn/staging/mapred/.staging</value>
+  </property>
+  <property>
+    <name>mapred.healthChecker.script.path</name>
+    <value>glusterfs:///mapred/jobstatus</value>
+  </property>
+  <property>
+    <name>mapred.job.tracker.history.completed.location</name>
+    <value>glusterfs:///mapred/history/done</value>
+  </property>
+  <property>
+    <name>mapred.system.dir</name>
+    <value>glusterfs:///mapred/system</value>
+  </property>
+  <property>
+    <name>mapreduce.jobtracker.staging.root.dir</name>
+    <value>glusterfs:///user</value>
+  </property>
+</configuration>
