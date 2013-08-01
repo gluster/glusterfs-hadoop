@@ -7,12 +7,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
+import org.apache.hadoop.fs.glusterfs.GlusterFileSystemCRC;
 import org.junit.BeforeClass;
 
 /**
  * A file system specifically for testing the GlusterFileSystem class.
- * Provides a getter for a singleton instance of a {@link GlusterFileSystem}.
+ * Provides a getter for a singleton instance of a {@link GlusterFileSystemCRC}.
  */
 public class GFSUtil {
     
@@ -90,14 +90,14 @@ public class GFSUtil {
     /**
      * Singleton - only expose one GFS at a time.
      */
-    static GlusterFileSystem gfs ;
+    static GlusterFileSystemCRC gfs ;
 
     public static Configuration createConfiguration(boolean automount) throws Exception{
         if(gfs != null){
             gfs.close();
         }
         
-        gfs = new GlusterFileSystem();
+        gfs = new GlusterFileSystemCRC();
         //Setup the temp directory.  
         final File mount = initializeMounts(getTempDirectory());
         
@@ -108,7 +108,7 @@ public class GFSUtil {
     /**
      * Use this method to create a new instance of a gluster file system class.
      */
-    public static GlusterFileSystem create(boolean automount) throws Exception{
+    public static GlusterFileSystemCRC create(boolean automount) throws Exception{
 
         Configuration conf = createConfiguration(automount);
         //Initialize GlusterFileSystem
