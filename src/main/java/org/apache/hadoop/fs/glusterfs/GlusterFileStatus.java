@@ -84,7 +84,7 @@ public class GlusterFileStatus extends FileStatus{
     private void loadPermissionInfo(){
         IOException e=null;
         try{
-            StringTokenizer t=new StringTokenizer(Util.execCommand(fs.pathToFile(getPath()), Shell.getGET_PERMISSION_COMMAND()));
+            StringTokenizer t=new StringTokenizer(Util.execCommand(fs.pathToFile(getPath()), Util.getGET_PERMISSION_COMMAND()));
             // expected format
             // -rw------- 1 username groupname ...
             String permission=t.nextToken();

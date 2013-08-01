@@ -35,7 +35,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.glusterfs.GlusterFileSystem;
+import org.apache.hadoop.fs.glusterfs.GlusterFileSystemCRC;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.tools.ant.util.FileUtils;
@@ -50,7 +50,7 @@ import org.junit.Test;
  */
 public class TestGluster{
     
-    static GlusterFileSystem gfs ; 
+    static GlusterFileSystemCRC gfs ; 
     
     @BeforeClass
     public static void setup() throws Exception {

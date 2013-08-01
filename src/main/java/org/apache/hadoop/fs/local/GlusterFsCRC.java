@@ -19,7 +19,7 @@
 
 /**
  * Implements the Hadoop FileSystem 2.x Interface to allow applications to store
- * files on GlusterFS and run Map/Reduce jobs on the data.  This code does not perform a CRC 
+ * files on GlusterFS and run Map/Reduce jobs on the data.  This code does perform a CRC 
  * on the files.
  * 
  * gluster file systems are specified with the glusterfs:// prefix.
@@ -34,17 +34,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FilterFs;
+import org.apache.hadoop.fs.ChecksumFs;
 
-public class GlusterFs extends FilterFs{
+public class GlusterFsCRC extends ChecksumFs{
 
-    GlusterFs(Configuration conf) throws IOException, URISyntaxException{
+    GlusterFsCRC(Configuration conf) throws IOException, URISyntaxException{
         super(new GlusterVol(conf));
     }
 
-    GlusterFs(final URI theUri, final Configuration conf) throws IOException, URISyntaxException{
+    GlusterFsCRC(final URI theUri, final Configuration conf) throws IOException, URISyntaxException{
         this(conf);
     }
-
 
 }
