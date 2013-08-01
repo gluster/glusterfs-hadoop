@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class GlusterVolume extends RawLocalFileSystem{
 
-    static final Logger log = LoggerFactory.getLogger(GlusterFileSystem.class);
+    static final Logger log = LoggerFactory.getLogger(GlusterFileSystemCRC.class);
     public static final URI NAME = URI.create("glusterfs:///");
     
     protected String root=null;
@@ -53,7 +53,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     public URI getUri() { return NAME; }
     
     public void setConf(Configuration conf){
-        log.info("initializing gluster volume..");
+        log.info("Initializing gluster volume..");
         super.setConf(conf);
         String getfattrcmd = null;
         if(conf!=null){

@@ -31,12 +31,23 @@ import org.apache.hadoop.util.Shell;
 
 public class Util{
 
-   public static String execCommand(File f, String... cmd) throws IOException {
-    String[] args = new String[cmd.length + 1];
-    System.arraycopy(cmd, 0, args, 0, cmd.length);
-    args[cmd.length] = FileUtil.makeShellPath(f, true);
-    String output = Shell.execCommand(args);
-    return output;
-  }
+    public static String execCommand(File f,String...cmd) throws IOException{
+        String[] args=new String[cmd.length+1];
+        System.arraycopy(cmd, 0, args, 0, cmd.length);
+        args[cmd.length]=FileUtil.makeShellPath(f, true);
+        String output=Shell.execCommand(args);
+        return output;
+    }
 
+    /* copied from unstalbe hadoop API org.apache.hadoop.Shell */
+    public static String[] getGET_PERMISSION_COMMAND(){
+        // force /bin/ls, except on windows.
+        return new String[]{(WINDOWS ? "ls" : "/bin/ls"),"-ld"};
+    }
+    
+    /* copied from unstalbe hadoop API org.apache.hadoop.Shell */
+    
+    public static final boolean WINDOWS /* borrowed from Path.WINDOWS */
+    =System.getProperty("os.name").startsWith("Windows");
+    // / loads permissions, owner, and group from `ls -ld`
 }
