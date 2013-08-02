@@ -17,4 +17,7 @@ public class Version extends Properties{
             lg.error("Couldn't find git properties for version info " + t.getMessage());
         }
     }
+    public String getTag(){
+        return this.getProperty("git.commit.id.describe").split("-")[0];
+    }
 }
