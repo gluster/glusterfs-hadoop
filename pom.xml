@@ -144,10 +144,11 @@
                         by default describe will run "just like git-describe on the command line", even though it's a JGit reimplementation.
                     -->
                     <gitDescribe>
-
+                        <!-- This will show the available tags-->
+						<tags>true</tags>
+						
                         <!-- don't generate the describe property -->
                         <skip>false</skip>
-
                         <!-- 
                             if no tag was found "near" this commit, just print the commit's id instead, 
                             helpful when you always expect this field to be not-empty 

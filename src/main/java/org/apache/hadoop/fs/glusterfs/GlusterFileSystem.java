@@ -62,7 +62,10 @@ public class GlusterFileSystem extends FilterFileSystem{
 
     public GlusterFileSystem(){
         this(new GlusterVolume());
+        Version v=new Version();
         log.info("Initializing GlusterFS,  CRC disabled.");
+        log.info("GIT INFO="+v);
+        log.info("GIT_TAG="+v.getTag());
     }
 
     public GlusterFileSystem(FileSystem rawLocalFileSystem){

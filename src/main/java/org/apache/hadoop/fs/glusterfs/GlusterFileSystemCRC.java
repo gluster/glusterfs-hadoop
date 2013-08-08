@@ -43,6 +43,9 @@ public class GlusterFileSystemCRC extends LocalFileSystem{
     
     public GlusterFileSystemCRC(){
         super(new GlusterVolume());
+        Version v = new Version();
+        log.info("GIT INFO="+v);
+        log.info("GIT_TAG="+v.getTag());
     }
     
     public void setConf(Configuration conf){
