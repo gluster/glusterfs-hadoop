@@ -50,6 +50,18 @@ public class GlusterFileSystem extends FilterFileSystem{
         return rfs;
     }
 
+    /** Check that a Path belongs to this FileSystem. */
+    @Override
+    protected void checkPath(Path path) {
+        String thisScheme = this.getUri().getScheme();
+        String thatScheme = path.toUri().getScheme();
+        String thisAuthority = this.getUri().getAuthority();
+        String thatAuthority = path.toUri().getAuthority();
+        log.info("checking path: scheme=" + thisScheme+" auth="+thisAuthority + " vs scheme=" + thatScheme +" auth=" + thatAuthority);
+        //now the exception will be traceable in the logs above .
+        super.checkPath(path);
+    }
+
     public void initialize(URI name,Configuration conf) throws IOException{
         if(fs.getConf()==null){
             fs.initialize(name, conf);
