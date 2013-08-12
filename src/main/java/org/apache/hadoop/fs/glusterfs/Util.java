@@ -26,7 +26,9 @@ package org.apache.hadoop.fs.glusterfs;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.Shell;
 
 public class Util{
@@ -50,4 +52,32 @@ public class Util{
     public static final boolean WINDOWS /* borrowed from Path.WINDOWS */
     =System.getProperty("os.name").startsWith("Windows");
     // / loads permissions, owner, and group from `ls -ld`
+
+    /** 
+     * Check that a Path belongs to this FileSystem. 
+     * lenient : doesn't check authority. This might be temporary ~ 
+     * there could be a better long term implementation.
+     * */
+    public static void checkPath(FileSystem fs, Path path) {
+        String thisScheme = fs.getUri().getScheme();
+        String thisAuthority = fs.getUri().getAuthority();
+
+        String thatScheme = path.toUri().getScheme();
+        String thatAuthority = path.toUri().getAuthority();
+        
+        //String debugInfo="GV: checking path " +path+  " scheme=" + thisScheme+" auth="+thisAuthority + " vs scheme=" + thatScheme +" auth=" + thatAuthority;
+        //log.info(debugInfo);
+        //log.warn("Not validating authority");
+        //now the exception will be traceable in the logs above .
+        try{
+            //super.checkPath(path);
+            if(thisScheme.equals(thatScheme) || (thatScheme==null && thatAuthority==null))
+                return ;
+            else
+                throw new RuntimeException("Schemes dont match: expecting :" + thisScheme + " but input path is :" + thatScheme);
+         }
+        catch(Throwable t){
+            throw new RuntimeException("ERROR matching schemes/auths: " + thisScheme +" ~ " + thisAuthority + " : " + thatScheme + " ~ " + thatAuthority );
+        }
+    }
 }

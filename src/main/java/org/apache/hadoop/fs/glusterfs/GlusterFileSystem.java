@@ -113,6 +113,11 @@ public class GlusterFileSystem extends FilterFileSystem{
         FileUtil.copy(srcFs, src, dstFs, dst, delSrc, getConf());
     }
 
+    @Override
+    protected void checkPath(Path path){
+        Util.checkPath(this, path);
+    }
+
     public String toString(){
         return "Gluster File System, no CRC.";
     }

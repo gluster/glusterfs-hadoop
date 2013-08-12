@@ -160,7 +160,19 @@ public class GlusterVolume extends RawLocalFileSystem{
 
         return result;
     }
+
+    @Override
+    protected void checkPath(Path path){
+        Util.checkPath(this, path);
+    }
     
+    /** 
+    * May revert to include this at some point.
+    * protected void checkPath(Path arg0){
+    *      super.checkPath(arg0);
+    * }
+    */
+
     public String toString(){
         return "Gluster Volume mounted at: " + root;
     }
