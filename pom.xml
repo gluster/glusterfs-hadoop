@@ -22,11 +22,13 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common-test</artifactId>
       <version>0.22.0</version>
+      <scope>test</scope>
 	</dependency>
 	<dependency>
 	   <groupId>org.apache.hadoop</groupId>
 	   <artifactId>hadoop-test</artifactId>
 	   <version>1.0.0</version>
+           <scope>test</scope>
 	</dependency>
     <dependency>
 	    <groupId>org.slf4j</groupId>
