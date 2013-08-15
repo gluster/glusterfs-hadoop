@@ -22,11 +22,13 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common-test</artifactId>
       <version>0.22.0</version>
+      <scope>test</scope>
 	</dependency>
 	<dependency>
 	   <groupId>org.apache.hadoop</groupId>
 	   <artifactId>hadoop-test</artifactId>
 	   <version>1.0.0</version>
+           <scope>test</scope>
 	</dependency>
     <dependency>
 	    <groupId>org.slf4j</groupId>
@@ -45,6 +47,7 @@
       <plugin>
 		<groupId>org.apache.maven.plugins</groupId>
 		<artifactId>maven-surefire-plugin</artifactId>
+                <version>2.14</version>
 		<configuration>
 			<!--  
 				run "export GLUSTER_HOST=192.X.X.1
@@ -63,16 +66,6 @@
 		 </configuration>
  	 </plugin>
 		      
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>1.5</source>
-          <target>1.5</target>
-        </configuration>
-      </plugin>
-      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
