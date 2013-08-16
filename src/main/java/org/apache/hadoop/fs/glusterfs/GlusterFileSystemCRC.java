@@ -71,6 +71,12 @@ public class GlusterFileSystemCRC extends LocalFileSystem{
       FileUtil.copy(srcFs, src, dstFs, dst, delSrc, getConf());
     }
     
+
+    @Override
+    protected void checkPath(Path path){
+        Util.checkPath(this, path);
+    }
+    
     public String toString(){
         return "Gluster File System - CRC Enabled";
     }

@@ -67,8 +67,15 @@ public class GlusterFileSystem extends FilterFileSystem{
         log.info("GIT INFO="+v);
         log.info("GIT_TAG="+v.getTag());
     }
-
-    public GlusterFileSystem(FileSystem rawLocalFileSystem){
+    
+    /**
+     * An internal constructor for creating FlusterFileSystem from a rawlocal fs.
+     * Example usage: 
+     * <code>
+     *    FileSystem fs = new GlusterFileSystem(new GlusterVolume()); 
+     * </code>
+     */
+    protected GlusterFileSystem(FileSystem rawLocalFileSystem){
         super(rawLocalFileSystem);
         rfs=rawLocalFileSystem;
     }
@@ -111,6 +118,11 @@ public class GlusterFileSystem extends FilterFileSystem{
         FileSystem srcFs=src.getFileSystem(getConf());
         FileSystem dstFs=new Path("file:/"+dst.toString()).getFileSystem(getConf());
         FileUtil.copy(srcFs, src, dstFs, dst, delSrc, getConf());
+    }
+
+    @Override
+    protected void checkPath(Path path){
+        Util.checkPath(this, path);
     }
 
     public String toString(){
