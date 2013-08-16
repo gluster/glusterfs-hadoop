@@ -70,8 +70,12 @@ public class GlusterFileSystem extends FilterFileSystem{
     
     /**
      * An internal constructor for creating FlusterFileSystem from a rawlocal fs.
+     * Example usage: 
+     * <code>
+     *    FileSystem fs = new GlusterFileSystem(new GlusterVolume()); 
+     * </code>
      */
-    private GlusterFileSystem(FileSystem rawLocalFileSystem){
+    protected GlusterFileSystem(FileSystem rawLocalFileSystem){
         super(rawLocalFileSystem);
         rfs=rawLocalFileSystem;
     }
