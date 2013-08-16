@@ -35,6 +35,9 @@ import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 
+ */
 public class GlusterVolume extends RawLocalFileSystem{
 
     static final Logger log = LoggerFactory.getLogger(GlusterFileSystemCRC.class);
@@ -53,7 +56,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     public URI getUri() { return NAME; }
     
     public void setConf(Configuration conf){
-        log.info("Initializing gluster volume..");
+        log.info("Initializing gluster volume: " + conf.toString());
         super.setConf(conf);
         String getfattrcmd = null;
         if(conf!=null){
@@ -154,7 +157,7 @@ public class GlusterVolume extends RawLocalFileSystem{
 
         result=attr.getPathInfo(f.getPath(), start, len);
         if(result==null){
-            log.info("Problem getting destination host for file "+f.getPath());
+            log.info("Problem getting destination host for file "+f.getPath() + " start=" + start + " len=" + len) ;
             return null;
         }
 

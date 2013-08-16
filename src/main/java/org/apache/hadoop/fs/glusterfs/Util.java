@@ -56,7 +56,9 @@ public class Util{
     /** 
      * Check that a Path belongs to this FileSystem. 
      * lenient : doesn't check authority. This might be temporary ~ 
-     * there could be a better long term implementation.
+     * there could be a better long term implementation.  
+     * Having custom implementation here is critical for debugging, because
+     * existing checkPath in hadoop doesn't print all the scheme/auth values.
      * */
     public static void checkPath(FileSystem fs, Path path) {
         String thisScheme = fs.getUri().getScheme();

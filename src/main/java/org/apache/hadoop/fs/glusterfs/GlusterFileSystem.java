@@ -67,8 +67,11 @@ public class GlusterFileSystem extends FilterFileSystem{
         log.info("GIT INFO="+v);
         log.info("GIT_TAG="+v.getTag());
     }
-
-    public GlusterFileSystem(FileSystem rawLocalFileSystem){
+    
+    /**
+     * An internal constructor for creating FlusterFileSystem from a rawlocal fs.
+     */
+    private GlusterFileSystem(FileSystem rawLocalFileSystem){
         super(rawLocalFileSystem);
         rfs=rawLocalFileSystem;
     }
