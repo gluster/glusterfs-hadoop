@@ -14,10 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GlusterVol extends RawLocalFsG{
-    
-    protected String glusterMount = null;
+   
     protected static final Logger log = LoggerFactory.getLogger(GlusterFileSystemCRC.class);
-    
     
     GlusterVol(final Configuration conf) throws IOException, URISyntaxException {
         this(GlusterVolume.NAME, conf);

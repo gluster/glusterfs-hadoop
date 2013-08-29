@@ -43,34 +43,13 @@ import org.slf4j.LoggerFactory;
 public class GlusterFileSystem extends FilterFileSystem{
 
     protected static final Logger log=LoggerFactory.getLogger(GlusterFileSystem.class);
-    FileSystem rfs;
-    String swapScheme;
-
-    public FileSystem getRaw(){
-        return rfs;
-    }
-
-    public void initialize(URI name,Configuration conf) throws IOException{
-        if(fs.getConf()==null){
-            fs.initialize(name, conf);
-        }
-        String scheme=name.getScheme();
-        if(!scheme.equals(fs.getUri().getScheme())){
-            swapScheme=scheme;
-        }
-    }
-
+   
     public GlusterFileSystem(){
-        this(new GlusterVolume());
+        super(new GlusterVolume());
         Version v=new Version();
         log.info("Initializing GlusterFS,  CRC disabled.");
         log.info("GIT INFO="+v);
         log.info("GIT_TAG="+v.getTag());
-    }
-
-    public GlusterFileSystem(FileSystem rawLocalFileSystem){
-        super(rawLocalFileSystem);
-        rfs=rawLocalFileSystem;
     }
 
     /** Convert a path to a File. */
