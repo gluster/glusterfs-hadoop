@@ -23,8 +23,8 @@ public class RawLocalFsG extends DelegateToFileSystem{
      * 
      */
       
-    RawLocalFsG(final URI theUri, final FileSystem fs, final Configuration conf,boolean myMamaFat) throws IOException, URISyntaxException{
-        super(theUri, fs, conf, theUri.getScheme(), myMamaFat);
+    RawLocalFsG(final URI theUri, final FileSystem fs, final Configuration conf,boolean authorityRequired) throws IOException, URISyntaxException{
+        super(theUri, fs, conf, theUri.getScheme(), authorityRequired);
     }
     
     
