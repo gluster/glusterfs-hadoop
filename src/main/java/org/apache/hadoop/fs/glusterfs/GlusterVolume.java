@@ -66,6 +66,18 @@ public class GlusterVolume extends RawLocalFileSystem{
                 }else{
                 	attr = new GlusterFSXattr();
                 }
+                String jtSysDir = conf.get("mapreduce.jobtracker.system.dir", null);
+                Path mapredSysDirectory = null;
+                
+                if(jtSysDir!=null)
+                    mapredSysDirectory = new Path(jtSysDir);
+                else{
+                    mapredSysDirectory = new Path(conf.get("mapred.system.dir", "glusterfs:///mapred/system"));
+                }
+                
+                if(!exists(mapredSysDirectory)){
+                    mkdirs(mapredSysDirectory);
+                }
                 
                 //volName=conf.get("fs.glusterfs.volname", null);
                 //remoteGFSServer=conf.get("fs.glusterfs.server", null);
