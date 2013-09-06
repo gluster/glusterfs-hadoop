@@ -1,5 +1,6 @@
 /**
  *
+
  * Copyright (c) 2011 Gluster, Inc. <http://www.gluster.com>
  * This file is part of GlusterFS.
  *
@@ -41,6 +42,7 @@ import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.tools.ant.util.FileUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -129,6 +131,13 @@ public class TestGluster{
 
     @Test
     public void testGroupOwnership() throws Exception{
+        /**
+         * TODO, patchthis to work and run in all environments.
+         * Only works if you run as root.  Otherwise this 
+         * test is meaningless.
+         */
+        Assume.assumeTrue(System.getProperty("user.name").equals("root"));
+
         Path myFile=new Path("filePerm.txt");
         //Create a file 
         gfs.create(myFile);
