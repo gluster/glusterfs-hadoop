@@ -18,14 +18,14 @@
 
 package org.gluster.test;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.TestResult;
 
 import org.apache.hadoop.fs.FileSystemContractBaseTest;
+import org.apache.hadoop.fs.Path;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,15 +42,20 @@ public class TestGlusterFileSystemContract extends FileSystemContractBaseTest {
      */
     static final List<String> IGNORE=
             Arrays.asList(
-              "testWorkingDirectory",
+              //"testWorkingDirectory",
               "testRenameNonExistentPath",
               "testRenameFileMoveToNonExistentDirectory",
               "testRenameFileAsExistingFile",
+              "testWorkingDirectory",
+              "testListStatus",
               "testRenameDirectoryMoveToNonExistentDirectory",
               "testRenameDirectoryAsExistingDirectory",
               "testRenameDirectoryAsNonExistentDirectory"
             );
     
+  
+    
+
     public void run(TestResult result) {
         //We ignore the tests above.  the @Ignore annotation doesnt
         //work for TestCase descendents.  And thus, to keep 
