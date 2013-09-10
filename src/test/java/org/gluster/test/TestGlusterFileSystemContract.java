@@ -48,6 +48,7 @@ public class TestGlusterFileSystemContract extends FileSystemContractBaseTest {
               "testRenameFileAsExistingFile",
               "testWorkingDirectory",
               "testListStatus",
+              "testMkdirs",
               "testRenameDirectoryMoveToNonExistentDirectory",
               "testRenameDirectoryAsExistingDirectory",
               "testRenameDirectoryAsNonExistentDirectory"
