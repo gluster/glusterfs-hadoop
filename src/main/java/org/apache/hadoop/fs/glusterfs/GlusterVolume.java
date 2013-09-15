@@ -29,6 +29,8 @@ import java.util.Arrays;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.BufferedFSInputStream;
+import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RawLocalFileSystem;
@@ -175,6 +177,38 @@ public class GlusterVolume extends RawLocalFileSystem{
     
     public String toString(){
         return "Gluster Volume mounted at: " + root;
+    }
+    
+
+    /**
+     * An FS DataInputStream that guards against the underlying exception
+     */
+   	@Override
+   	public FSDataInputStream open(Path f, int bufferSize) throws IOException {
+   		return new WrappedFSDataInputStream(super.open(f, bufferSize));
+   	}
+
+   	
+    public static class WrappedFSDataInputStream extends FSDataInputStream{
+		public WrappedFSDataInputStream(FSDataInputStream in) throws IOException {
+			super(in);
+		}
+		long lastPos=0;
+		@Override
+		public long getPos() throws IOException {
+			try{
+				//Try to call the underlying get pos, but if it fails,
+				//just return the last valid read.  This should be 
+				//correct if the underlying call fails, it will be because
+				//the stream has been closed (assuming that the last read ended 
+				//at the final position in the stream, and no reads occured after that).
+				lastPos= ((BufferedFSInputStream)in).getPos();
+			}
+			catch(Throwable t){
+				log.error("Wrapped exception in getPos() : We will return the last valid pos." + t.getMessage());
+			}
+			return lastPos;
+		}
     }
 
 }
