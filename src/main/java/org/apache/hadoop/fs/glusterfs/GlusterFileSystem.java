@@ -30,13 +30,15 @@ package org.apache.hadoop.fs.glusterfs;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.FilterFileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.util.Progressable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,8 +69,21 @@ public class GlusterFileSystem extends FilterFileSystem{
         }else{
             return false;
         }
-    }
+	}
 
+	public FSDataOutputStream createNonRecursive(Path file,
+			FsPermission permission, boolean overwrite, int bufferSize,
+			short replication, long blockSize, Progressable progress)
+			throws IOException {
+		Path parent = file.getParent();
+		if (parent == null || exists(parent)) {
+			return create(file, permission, overwrite, bufferSize, replication,
+					blockSize, progress);
+		} else {
+			throw new IOException("Parent " + parent + " does not exist");
+		}
+	}
+	
     public void setConf(Configuration conf){
         log.info("Configuring GlusterFS");
         super.setConf(conf);
