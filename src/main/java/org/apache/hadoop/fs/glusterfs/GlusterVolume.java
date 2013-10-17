@@ -34,6 +34,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.hadoop.fs.permission.FsPermission;
 
 public class GlusterVolume extends RawLocalFileSystem{
 
@@ -41,6 +42,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     public static final URI NAME = URI.create("glusterfs:///");
     
     protected String root=null;
+    protected String superUser=null;
     
     protected static GlusterFSXattr attr = null;
     
@@ -78,6 +80,8 @@ public class GlusterVolume extends RawLocalFileSystem{
                 if(!exists(mapredSysDirectory)){
                     mkdirs(mapredSysDirectory);
                 }
+                
+                superUser =  conf.get("gluster.daemon.user", null);
                 
                 //volName=conf.get("fs.glusterfs.volname", null);
                 //remoteGFSServer=conf.get("fs.glusterfs.server", null);
@@ -155,7 +159,36 @@ public class GlusterVolume extends RawLocalFileSystem{
 
         return blkSz;
     }
-   
+    /*
+     * ensures the 'super user' is given read/write access.  
+     * the ACL drops off after a chmod or chown.
+     */
+    
+    private void updateAcl(Path p){
+    	if(superUser!=null){
+    		File f = pathToFile(p);
+    		String path = f.getAbsolutePath();
+    		String command = "setfacl -m u:" + superUser + ":rwx " + path;
+    		try{
+    			Runtime.getRuntime().exec(command);
+    		}catch(IOException ex){
+    			throw new RuntimeException(ex);
+    		}
+    	}
+    }
+    
+    public void setOwner(Path p, String username, String groupname)
+            throws IOException {
+    	super.setOwner(p,username,groupname);
+    	updateAcl(p);
+    	
+    }
+    
+    public void setPermission(Path p, FsPermission permission)
+            throws IOException {
+    	super.setPermission(p,permission);
+    	updateAcl(p);
+    }
     public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
         File f=pathToFile(file.getPath());
         BlockLocation[] result=null;
