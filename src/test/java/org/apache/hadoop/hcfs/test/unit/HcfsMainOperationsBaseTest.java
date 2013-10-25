@@ -1,4 +1,4 @@
-package org.gluster.test;
+package org.apache.hadoop.hcfs.test.unit;
 
 import java.io.IOException;
 
@@ -9,31 +9,30 @@ import org.apache.hadoop.fs.FSMainOperationsBaseTest;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileSystemTestHelper;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorFactory;
+import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorInterface;
 import org.apache.tools.ant.util.FileUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
-public class TestFSMainOperationsGlusterFileSystem extends FSMainOperationsBaseTest {
+public class HcfsMainOperationsBaseTest extends FSMainOperationsBaseTest {
 
   @Before
   public void setUp() throws Exception {
-    fSys =GFSUtil.create(true);
+	HcfsTestConnectorInterface connector = HcfsTestConnectorFactory.getHcfsTestConnector();  
+    fSys = connector.create();
     super.setUp();
   }
 
-  static Path wd = null;
   protected Path getDefaultWorkingDirectory() throws IOException {
-    if (wd == null)
-      wd = fSys.getWorkingDirectory();
-    return wd;
+      return fSys.getWorkingDirectory();
   }
 
   @After
   public void tearDown() throws Exception {
       fSys.close();
-      FileUtils.delete(GFSUtil.getTempDirectory());
   }
 
   @Test

@@ -23,7 +23,7 @@
  *
  */
 
-package org.gluster.test;
+package org.apache.hadoop.hcfs.test.unit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,6 +31,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -38,55 +39,55 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.glusterfs.GlusterFileSystemCRC;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
-import org.apache.tools.ant.util.FileUtils;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorFactory;
+import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorInterface;
 
 /**
- * Unit test for simple Gluster FS + Hadoop shim test.
+ * Unit test for HCFS classes.
  * 
  */
-public class TestGluster{
+public class HcfsFileSystemTest{
     
-    static GlusterFileSystemCRC gfs ; 
+    static FileSystem fs ; 
     
     @BeforeClass
     public static void setup() throws Exception {
-        /**
-         * Automount = true.
-         */
-        gfs= GFSUtil.create(true);
+    	HcfsTestConnectorInterface connector = HcfsTestConnectorFactory.getHcfsTestConnector();
+        fs= connector.create();
     }
     
     @AfterClass
     public static void after() throws IOException{
-        gfs.close();
-        FileUtils.delete(GFSUtil.getTempDirectory());
+        fs.close();
+      
     }
 
     @org.junit.Test
     public void testTolerantMkdirs() throws Exception{
         System.out.println("Testing tollerance of mkdirs(a/b/c/d) then mkdirs(a/b/c)");
         Path longPath=new Path("a/b/c/d");
-        assertFalse(gfs.exists(longPath));
-        gfs.mkdirs(longPath);
-        assertTrue(gfs.exists(longPath));
-        gfs.mkdirs(new Path("a"));
-        assertTrue(gfs.exists(longPath));
-        assertTrue(gfs.exists(new Path("a")));
-        gfs.mkdirs(new Path("a/b"));
-        assertTrue(gfs.exists(longPath));
-        assertTrue(gfs.exists(new Path("a/b")));
-        gfs.mkdirs(new Path("a/b/c"));
-        assertTrue(gfs.exists(longPath));
-        assertTrue(gfs.exists(new Path("a/b/c")));
+        assertFalse(fs.exists(longPath));
+        fs.mkdirs(longPath);
+        assertTrue(fs.exists(longPath));
+        fs.mkdirs(new Path("a"));
+        assertTrue(fs.exists(longPath));
+        assertTrue(fs.exists(new Path("a")));
+        fs.mkdirs(new Path("a/b"));
+        assertTrue(fs.exists(longPath));
+        assertTrue(fs.exists(new Path("a/b")));
+        fs.mkdirs(new Path("a/b/c"));
+        assertTrue(fs.exists(longPath));
+        assertTrue(fs.exists(new Path("a/b/c")));
 
         /* delete the directories */
 
-        gfs.delete(new Path("a"), true);
-        assertFalse(gfs.exists(longPath));
+        fs.delete(new Path("a"), true);
+        assertFalse(fs.exists(longPath));
 
     }
 
@@ -98,9 +99,9 @@ public class TestGluster{
     public void testOwner() throws Exception{
         final String me=System.getProperties().getProperty("user.name");
         Path myFile=new Path("to_owned_by_me.txt");
-        gfs.create(myFile);
-        Assert.assertEquals(gfs.getFileStatus(myFile).getOwner(), me);
-        gfs.delete(myFile);
+        fs.create(myFile);
+        Assert.assertEquals(fs.getFileStatus(myFile).getOwner(), me);
+        fs.delete(myFile);
     }
 
     @org.junit.Test
@@ -110,76 +111,76 @@ public class TestGluster{
         String readChars=null;
 
         FSDataOutputStream dfsOut=null;
-        dfsOut=gfs.create(new Path("test1.txt"));
+        dfsOut=fs.create(new Path("test1.txt"));
         dfsOut.writeUTF(testString);
         dfsOut.close();
 
         FSDataInputStream dfsin=null;
 
-        dfsin=gfs.open(new Path("test1.txt"));
+        dfsin=fs.open(new Path("test1.txt"));
         readChars=dfsin.readUTF();
         dfsin.close();
 
         assertEquals(testString, readChars);
 
-        gfs.delete(new Path("test1.txt"), true);
+        fs.delete(new Path("test1.txt"), true);
 
-        assertFalse(gfs.exists(new Path("test1")));
+        assertFalse(fs.exists(new Path("test1")));
     }
 
     @Test
     public void testGroupOwnership() throws Exception{
         Path myFile=new Path("filePerm.txt");
         //Create a file 
-        gfs.create(myFile);
+        fs.create(myFile);
         
         //Set the initial owner
-        gfs.setOwner(myFile, "daemon", "root");
-        String oldOwner = gfs.getFileStatus(myFile).getOwner(); 
-        String oldGroup = gfs.getFileStatus(myFile).getGroup();
+        fs.setOwner(myFile, "daemon", "root");
+        String oldOwner = fs.getFileStatus(myFile).getOwner(); 
+        String oldGroup = fs.getFileStatus(myFile).getGroup();
         Assert.assertEquals("daemon",oldOwner);
         Assert.assertEquals("root",oldGroup);
         
         //Now, change it to "root" "wheel" 
-        gfs.setOwner(myFile, "root", "wheel");
-        String newOwner = gfs.getFileStatus(myFile).getOwner(); 
-        String newGroup = gfs.getFileStatus(myFile).getGroup();
+        fs.setOwner(myFile, "root", "wheel");
+        String newOwner = fs.getFileStatus(myFile).getOwner(); 
+        String newGroup = fs.getFileStatus(myFile).getGroup();
         Assert.assertEquals("root",newOwner);
         Assert.assertEquals("wheel",newGroup);
         
-        gfs.delete(myFile,true);
+        fs.delete(myFile,true);
     }
     
     @org.junit.Test
     public void testPermissions() throws Exception{
 
         Path myFile=new Path("filePerm.txt");
-        gfs.create(myFile);
+        fs.create(myFile);
         short perm=0777;
-        gfs.setPermission(myFile, new FsPermission(perm));
-        assertEquals(gfs.getFileStatus(myFile).getPermission().toShort(), perm);
+        fs.setPermission(myFile, new FsPermission(perm));
+        assertEquals(fs.getFileStatus(myFile).getPermission().toShort(), perm);
 
         perm=0700;
-        gfs.setPermission(myFile, new FsPermission(perm));
-        assertEquals(gfs.getFileStatus(myFile).getPermission().toShort(), perm);
+        fs.setPermission(myFile, new FsPermission(perm));
+        assertEquals(fs.getFileStatus(myFile).getPermission().toShort(), perm);
 
-        gfs.delete(myFile);
-        assertFalse(gfs.exists(myFile));
+        fs.delete(myFile);
+        assertFalse(fs.exists(myFile));
         
         /* directory permissions */
         Path directory = new Path("aa/bb/cc");
         perm = 0700;
-        gfs.mkdirs(directory, new FsPermission(perm));
-        assertEquals(gfs.getFileStatus(directory).getPermission().toShort(), perm);
-        gfs.delete(new Path("aa"),true);
-        assertFalse(gfs.exists(directory));
+        fs.mkdirs(directory, new FsPermission(perm));
+        assertEquals(fs.getFileStatus(directory).getPermission().toShort(), perm);
+        fs.delete(new Path("aa"),true);
+        assertFalse(fs.exists(directory));
         
         
         perm = 0777;
-        gfs.mkdirs(directory, new FsPermission(perm));
-        assertEquals(gfs.getFileStatus(directory).getPermission().toShort(), perm);
-        gfs.delete(new Path("aa"),true);
-        assertFalse(gfs.exists(directory));
+        fs.mkdirs(directory, new FsPermission(perm));
+        assertEquals(fs.getFileStatus(directory).getPermission().toShort(), perm);
+        fs.delete(new Path("aa"),true);
+        assertFalse(fs.exists(directory));
     }
     
     @org.junit.Test
@@ -189,46 +190,46 @@ public class TestGluster{
         final Path test1=new Path("td_test1");
         final Path test2=new Path("td_test/dir.2");
 
-        System.out.println("Assert that "+baseDir+" doesnt exist yet "+gfs.exists(baseDir));
-        assertFalse(gfs.exists(baseDir));
-        assertFalse(gfs.isDirectory(baseDir));
+        System.out.println("Assert that "+baseDir+" doesnt exist yet "+fs.exists(baseDir));
+        assertFalse(fs.exists(baseDir));
+        assertFalse(fs.isDirectory(baseDir));
 
         // make the dir
-        gfs.mkdirs(baseDir);
+        fs.mkdirs(baseDir);
 
-        System.out.println("Assert that "+baseDir+" exists under gfs");
-        assertTrue(gfs.isDirectory(baseDir));
-        // gfs.setWorkingDirectory(baseDir);
+        System.out.println("Assert that "+baseDir+" exists under fs");
+        assertTrue(fs.isDirectory(baseDir));
+        // fs.setWorkingDirectory(baseDir);
 
-        gfs.mkdirs(subDir1);
+        fs.mkdirs(subDir1);
 
-        System.out.println("Assert that subDir1 "+subDir1+" exists under gfs");
-        assertTrue(gfs.isDirectory(subDir1));
+        System.out.println("Assert that subDir1 "+subDir1+" exists under fs");
+        assertTrue(fs.isDirectory(subDir1));
 
-        System.out.println("Assert that test1 "+test1+" exists under gfs");
-        assertFalse(gfs.exists(test1));
+        System.out.println("Assert that test1 "+test1+" exists under fs");
+        assertFalse(fs.exists(test1));
 
-        System.out.println("Assert that test2 "+test2+" is file under gfs");
-        assertFalse(gfs.isDirectory(test2));
+        System.out.println("Assert that test2 "+test2+" is file under fs");
+        assertFalse(fs.isDirectory(test2));
 
-        gfs.create(new Path(baseDir, "dummyfile"));
-        FileStatus[] p=gfs.listStatus(baseDir);
+        fs.create(new Path(baseDir, "dummyfile"));
+        FileStatus[] p=fs.listStatus(baseDir);
         System.out.println("Assert that baseDir "+baseDir+" has 1 file in it "+p.length);
         assertEquals(p.length, 1);
 
-        gfs.delete(baseDir, true);
+        fs.delete(baseDir, true);
         System.out.println("Assert that basedir  "+baseDir+" is nonexistent");
-        assertFalse(gfs.exists(baseDir));
+        assertFalse(fs.exists(baseDir));
 
-        gfs.delete(subDir1, true);
+        fs.delete(subDir1, true);
         System.out.println("Assert that subDir  "+subDir1+" is nonexistent");
-        assertFalse(gfs.exists(subDir1));
+        assertFalse(fs.exists(subDir1));
 
         System.out.println("done.");
 
-        gfs.delete(baseDir);
-        gfs.delete(test1);
-        gfs.delete(test2);
+        fs.delete(baseDir);
+        fs.delete(test1);
+        fs.delete(test2);
     }
 
     @org.junit.Test
@@ -239,35 +240,35 @@ public class TestGluster{
         Path file1=new Path("tf_dir.1/foo.1");
         Path file2=new Path("tf_dir.1/foo.2");
 
-        gfs.mkdirs(baseDir);
-        assertTrue(gfs.isDirectory(baseDir));
-        // gfs.setWorkingDirectory(baseDir);
+        fs.mkdirs(baseDir);
+        assertTrue(fs.isDirectory(baseDir));
+        // fs.setWorkingDirectory(baseDir);
 
-        gfs.mkdirs(subDir1);
+        fs.mkdirs(subDir1);
 
-        FSDataOutputStream s1=gfs.create(file1, true, 4096, (short) 1, (long) 4096, null);
-        FSDataOutputStream s2=gfs.create(file2, true, 4096, (short) 1, (long) 4096, null);
+        FSDataOutputStream s1=fs.create(file1, true, 4096, (short) 1, (long) 4096, null);
+        FSDataOutputStream s2=fs.create(file2, true, 4096, (short) 1, (long) 4096, null);
 
         s1.close();
         s2.close();
 
-        FileStatus[] p=gfs.listStatus(subDir1);
+        FileStatus[] p=fs.listStatus(subDir1);
         assertEquals(p.length, 2);
 
-        gfs.delete(file1, true);
-        p=gfs.listStatus(subDir1);
+        fs.delete(file1, true);
+        p=fs.listStatus(subDir1);
         assertEquals(p.length, 1);
 
-        gfs.delete(file2, true);
-        p=gfs.listStatus(subDir1);
+        fs.delete(file2, true);
+        p=fs.listStatus(subDir1);
         assertEquals(p.length, 0);
 
-        gfs.delete(baseDir, true);
-        assertFalse(gfs.exists(baseDir));
+        fs.delete(baseDir, true);
+        assertFalse(fs.exists(baseDir));
 
-        gfs.delete(subDir1);
-        gfs.delete(file1);
-        gfs.delete(file2);
+        fs.delete(subDir1);
+        fs.delete(file1);
+        fs.delete(file2);
     }
 
     public void testFileIO() throws Exception{
@@ -276,13 +277,13 @@ public class TestGluster{
         Path file1=new Path("tfio_dir.1/foo.1");
         Path baseDir=new Path("tfio_testDirs1");
 
-        gfs.mkdirs(baseDir);
-        assertTrue(gfs.isDirectory(baseDir));
-        // gfs.setWorkingDirectory(baseDir);
+        fs.mkdirs(baseDir);
+        assertTrue(fs.isDirectory(baseDir));
+        // fs.setWorkingDirectory(baseDir);
 
-        gfs.mkdirs(subDir1);
+        fs.mkdirs(subDir1);
 
-        FSDataOutputStream s1=gfs.create(file1, true, 4096, (short) 1, (long) 4096, null);
+        FSDataOutputStream s1=fs.create(file1, true, 4096, (short) 1, (long) 4096, null);
 
         int bufsz=4096;
         byte[] data=new byte[bufsz];
@@ -302,7 +303,7 @@ public class TestGluster{
         s1.close();
 
         // Read the stuff back and verify it is correct
-        FSDataInputStream s2=gfs.open(file1, 4096);
+        FSDataInputStream s2=fs.open(file1, 4096);
         int v;
 
         v=s2.read();
@@ -325,17 +326,17 @@ public class TestGluster{
 
         s2.close();
 
-        gfs.delete(file1, true);
-        assertFalse(gfs.exists(file1));
-        gfs.delete(subDir1, true);
-        assertFalse(gfs.exists(subDir1));
-        gfs.delete(baseDir, true);
-        assertFalse(gfs.exists(baseDir));
+        fs.delete(file1, true);
+        assertFalse(fs.exists(file1));
+        fs.delete(subDir1, true);
+        assertFalse(fs.exists(subDir1));
+        fs.delete(baseDir, true);
+        assertFalse(fs.exists(baseDir));
 
         System.out.println("Deleting "+file1.toUri());
-        gfs.delete(subDir1);
-        gfs.delete(file1);
-        gfs.delete(baseDir);
+        fs.delete(subDir1);
+        fs.delete(file1);
+        fs.delete(baseDir);
 
     }
 
@@ -344,11 +345,11 @@ public class TestGluster{
     public void testPermissionsChanging() throws Exception{
         Path theFile=new Path("/mnt/glusterfs/changePerms/a");
 
-        gfs.create(theFile);
+        fs.create(theFile);
 
-        FsPermission originalPermissions=this.gfs.getFileStatus(theFile).getPermission();
+        FsPermission originalPermissions=this.fs.getFileStatus(theFile).getPermission();
         FsPermission changeTo=new FsPermission(FsAction.WRITE, FsAction.WRITE, FsAction.WRITE);
-        this.gfs.setPermission(theFile, changeTo);
+        this.fs.setPermission(theFile, changeTo);
 
         /**
          * Sanity check: Assert that the original permissions are different than
@@ -360,10 +361,10 @@ public class TestGluster{
          * Assert that we indeed changed the privileges to the exact expected
          * values.
          */
-        Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getGroupAction().equals(changeTo.getGroupAction()));
-        Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getUserAction().equals(changeTo.getUserAction()));
-        Assert.assertTrue(this.gfs.getFileStatus(theFile).getPermission().getOtherAction().equals(changeTo.getOtherAction()));
-        gfs.delete(new Path("mnt"),true);
+        Assert.assertTrue(this.fs.getFileStatus(theFile).getPermission().getGroupAction().equals(changeTo.getGroupAction()));
+        Assert.assertTrue(this.fs.getFileStatus(theFile).getPermission().getUserAction().equals(changeTo.getUserAction()));
+        Assert.assertTrue(this.fs.getFileStatus(theFile).getPermission().getOtherAction().equals(changeTo.getOtherAction()));
+        fs.delete(new Path("mnt"),true);
         
     }
 

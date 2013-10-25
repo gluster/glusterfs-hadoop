@@ -50,18 +50,24 @@
                 <version>2.14</version>
 		<configuration>
 			<!--  
-				run "export GLUSTER_HOST=192.X.X.1
-				     export GLUSTER_VOLUME=volname" 
+				run "export GLUSTER_MOUNT=/mnt/glusterfs
+				     export HCFS_FILE_SYSTEM_CONNECTOR=org.gluster.test.GlusterFileSystemTestConnector
+				     export HCFS_CLASSNAME=org.apache.hadoop.fs.glusterfs.GlusterFileSystem" 
 			-->
 		    <systemProperties>
 				          <property>
-				             <name>GLUSTER_HOST</name>
-				             <value>${GLUSTER_HOST}</value>
+				             <name>GLUSTER_MOUNT</name>
+				             <value>${GLUSTER_MOUNT}</value>
 				          </property>
-				           <property>
-				             <name>GLUSTER_VOLUME</name>
-				             <value>${GLUSTER_VOLUME}</value>
+				          <property>
+				             <name>HCFS_CLASSNAME</name>
+				             <value>${HCFS_CLASSNAME}</value>
 				          </property>
+				          <property>
+				             <name>HCFS_FILE_SYSTEM_CONNECTOR</name>
+				             <value>${HCFS_FILE_SYSTEM_CONNECTOR}</value>
+				          </property>
+				          
 			</systemProperties>
 		 </configuration>
  	 </plugin>

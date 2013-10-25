@@ -16,24 +16,27 @@
  *  limitations under the License.
  */
 
-package org.gluster.test;
+package org.apache.hadoop.hcfs.test.unit;
 
 import java.io.IOException;
 
 import org.apache.hadoop.fs.FileSystemContractBaseTest;
+import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorFactory;
+import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorInterface;
 import org.slf4j.LoggerFactory;
 
 /**
  * This is the full filesystem contract test -which requires the
  * Default config set up to point to a filesystem
  */
-public class TestGlusterFileSystemContract
+public class HcfsFileSystemContractBaseTest
   extends FileSystemContractBaseTest {
-  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(TestGlusterFileSystemContract.class);
+  private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(HcfsFileSystemContractBaseTest.class);
 
   @Override
   protected void setUp() throws Exception{
-      fs=GFSUtil.create(true);
+	  HcfsTestConnectorInterface connector = HcfsTestConnectorFactory.getHcfsTestConnector();
+      fs=connector.create();
       super.setUp();
   }
 
