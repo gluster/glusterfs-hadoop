@@ -88,11 +88,7 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         
     }
-    
-    public Path getWorkingDirectory() {
-        return new Path(NAME.toString() );
-    }
-    
+
     public File pathToFile(Path path) {
         String pathString = path.toUri().getRawPath();
      
