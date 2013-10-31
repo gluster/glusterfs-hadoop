@@ -43,6 +43,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     
     protected String root=null;
     protected String superUser=null;
+    protected AclPathFilter aclFilter = null;
     
     protected static GlusterFSXattr attr = null;
     
@@ -83,6 +84,7 @@ public class GlusterVolume extends RawLocalFileSystem{
                 
                 superUser =  conf.get("gluster.daemon.user", null);
                 
+                aclFilter = new AclPathFilter(conf);
                 //volName=conf.get("fs.glusterfs.volname", null);
                 //remoteGFSServer=conf.get("fs.glusterfs.server", null);
                 
@@ -165,7 +167,7 @@ public class GlusterVolume extends RawLocalFileSystem{
      */
     
     private void updateAcl(Path p){
-    	if(superUser!=null){
+    	if(superUser!=null && aclFilter.matches(p)  ){
     		File f = pathToFile(p);
     		String path = f.getAbsolutePath();
     		String command = "setfacl -m u:" + superUser + ":rwx " + path;
