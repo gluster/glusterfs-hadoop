@@ -16,7 +16,7 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.hcfs.test.unit;
+package org.apache.hadoop.fs.test.unit;
 
 import java.io.IOException;
 

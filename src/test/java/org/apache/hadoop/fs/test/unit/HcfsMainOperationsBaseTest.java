@@ -1,19 +1,15 @@
-package org.apache.hadoop.hcfs.test.unit;
+package org.apache.hadoop.fs.test.unit;
 
 import java.io.IOException;
 
 import junit.framework.Assert;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSMainOperationsBaseTest;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileSystemTestHelper;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorFactory;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorInterface;
-import org.apache.tools.ant.util.FileUtils;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnectorFactory;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnectorInterface;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +32,6 @@ public class HcfsMainOperationsBaseTest extends FSMainOperationsBaseTest {
   }
 
   @Test
-  @Override
   public void testWDAbsolute() throws IOException {
     Path absoluteDir = FileSystemTestHelper.getTestRootPath(fSys,
         "test/existingDir");

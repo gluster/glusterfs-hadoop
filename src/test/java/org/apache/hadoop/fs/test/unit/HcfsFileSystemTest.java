@@ -23,7 +23,7 @@
  *
  */
 
-package org.apache.hadoop.hcfs.test.unit;
+package org.apache.hadoop.fs.test.unit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,21 +31,19 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.glusterfs.GlusterFileSystemCRC;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnectorFactory;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnectorInterface;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorFactory;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorInterface;
 
 /**
  * Unit test for HCFS classes.

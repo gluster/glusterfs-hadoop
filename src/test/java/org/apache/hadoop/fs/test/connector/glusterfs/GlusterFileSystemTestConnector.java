@@ -1,7 +1,7 @@
-package org.apache.hadoop.hcfs.test.connector.glusterfs;
+package org.apache.hadoop.fs.test.connector.glusterfs;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnector;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnector;
 
 /**
  * A HCFS test connector specifically for instantiation and testing Glusterfs.

@@ -1,17 +1,13 @@
-package org.apache.hadoop.hcfs.test.unit;
+package org.apache.hadoop.fs.test.unit;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Random;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.TestGetFileBlockLocations;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnector;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorFactory;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorInterface;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnectorFactory;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnectorInterface;
 
 public class HcfsTestGetFileBlockLocations extends TestGetFileBlockLocations{
 	

@@ -1,4 +1,4 @@
-package org.apache.hadoop.hcfs.test.connector;
+package org.apache.hadoop.fs.test.connector;
 
 
 public class HcfsTestConnectorFactory {
