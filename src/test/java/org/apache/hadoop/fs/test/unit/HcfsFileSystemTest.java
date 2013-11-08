@@ -67,7 +67,6 @@ public class HcfsFileSystemTest{
 
     @org.junit.Test
     public void testTolerantMkdirs() throws Exception{
-        System.out.println("Testing tollerance of mkdirs(a/b/c/d) then mkdirs(a/b/c)");
         Path longPath=new Path("a/b/c/d");
         assertFalse(fs.exists(longPath));
         fs.mkdirs(longPath);
@@ -188,43 +187,34 @@ public class HcfsFileSystemTest{
         final Path test1=new Path("td_test1");
         final Path test2=new Path("td_test/dir.2");
 
-        System.out.println("Assert that "+baseDir+" doesnt exist yet "+fs.exists(baseDir));
         assertFalse(fs.exists(baseDir));
         assertFalse(fs.isDirectory(baseDir));
 
         // make the dir
         fs.mkdirs(baseDir);
 
-        System.out.println("Assert that "+baseDir+" exists under fs");
         assertTrue(fs.isDirectory(baseDir));
         // fs.setWorkingDirectory(baseDir);
 
         fs.mkdirs(subDir1);
 
-        System.out.println("Assert that subDir1 "+subDir1+" exists under fs");
         assertTrue(fs.isDirectory(subDir1));
 
-        System.out.println("Assert that test1 "+test1+" exists under fs");
         assertFalse(fs.exists(test1));
 
-        System.out.println("Assert that test2 "+test2+" is file under fs");
         assertFalse(fs.isDirectory(test2));
 
         fs.create(new Path(baseDir, "dummyfile"));
         FileStatus[] p=fs.listStatus(baseDir);
-        System.out.println("Assert that baseDir "+baseDir+" has 1 file in it "+p.length);
         assertEquals(p.length, 1);
 
         fs.delete(baseDir, true);
-        System.out.println("Assert that basedir  "+baseDir+" is nonexistent");
         assertFalse(fs.exists(baseDir));
 
         fs.delete(subDir1, true);
-        System.out.println("Assert that subDir  "+subDir1+" is nonexistent");
         assertFalse(fs.exists(subDir1));
 
-        System.out.println("done.");
-
+        
         fs.delete(baseDir);
         fs.delete(test1);
         fs.delete(test2);
@@ -331,7 +321,6 @@ public class HcfsFileSystemTest{
         fs.delete(baseDir, true);
         assertFalse(fs.exists(baseDir));
 
-        System.out.println("Deleting "+file1.toUri());
         fs.delete(subDir1);
         fs.delete(file1);
         fs.delete(baseDir);

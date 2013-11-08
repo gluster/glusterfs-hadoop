@@ -18,11 +18,10 @@
 
 package org.apache.hadoop.fs.test.unit;
 
-import java.io.IOException;
-
-import org.apache.hadoop.fs.FileSystemContractBaseTest;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorFactory;
-import org.apache.hadoop.hcfs.test.connector.HcfsTestConnectorInterface;
+import java.io.FileNotFoundException;
+import org.apache.hadoop.fs.FsStatus;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnectorFactory;
+import org.apache.hadoop.fs.test.connector.HcfsTestConnectorInterface;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -30,70 +29,41 @@ import org.slf4j.LoggerFactory;
  * Default config set up to point to a filesystem
  */
 public class HcfsFileSystemContractBaseTest
-  extends FileSystemContractBaseTest {
+  extends org.apache.hadoop.fs.FileSystemContractBaseTest {
   private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(HcfsFileSystemContractBaseTest.class);
 
-  @Override
   protected void setUp() throws Exception{
 	  HcfsTestConnectorInterface connector = HcfsTestConnectorFactory.getHcfsTestConnector();
       fs=connector.create();
       super.setUp();
   }
-
-    /**
-     * junit.framework.AssertionFailedError: Rename result expected:<false> but was:<true>
-     */
-    @Override
-    public void testRenameFileAsExistingFile() throws Exception{
-        super.testRenameFileAsExistingFile();
-    }
-
-    /**
-     * java.lang.RuntimeException: org.apache.hadoop.util.Shell$ExitCodeException: chmod: cannot access `/tmp/gluster-test-mount-point/mount/test/hadoop/file/subdir': Not a directory
-     */
-    @Override
-    public void testMkdirsFailsForSubdirectoryOfExistingFile() throws Exception{
-        super.testMkdirsFailsForSubdirectoryOfExistingFile();
-    }
-
-    /**
-     * java.io.IOException: Stream closed.
-     */
-    @Override
-    public void testOutputStreamClosedTwice() throws IOException{
-        super.testOutputStreamClosedTwice();
-    }
+  
  
-    /**
-     * junit.framework.AssertionFailedError: Rename result expected:<false> but was:<true>  
-     */
-    @Override
-    public void testListStatusThrowsExceptionForNonExistentFile() throws Exception{
-        super.testListStatusThrowsExceptionForNonExistentFile();
-    }
-
-    /**
-     * junit.framework.AssertionFailedError: expected:<file://null/user/root> but was:</tmp/gluster-test-mount-point/mount>
-     */
-    @Override
-    public void testWorkingDirectory() throws Exception{
-        super.testWorkingDirectory();
-    }
-
-    /**
-     * AssertionFailedError: null
-     */
-    @Override
-    public void testMkdirs() throws Exception{
-        super.testMkdirs();
-    }
-
-    /**
-    java.lang.NoSuchMethodError: org.apache.hadoop.fs.FileSystem.getStatus()Lorg/apache/hadoop/fs/FsStatus;
-     */
-    @Override
-    public void testFsStatus() throws Exception{
-        super.testFsStatus();
-    }
-    
+  public void testListStatusReturnsNullForNonExistentFile() throws Exception {
+	try{
+		fs.listStatus(path("/test/hadoop/file"));
+		fail("Should throw FileNotFoundException");
+	}catch(FileNotFoundException ex){
+		// exception thrown for non-existent file
+	}
+  }
+  
+  public void testListStatusThrowsExceptionForNonExistentFile() throws Exception {
+	    try {
+	      fs.listStatus(path("/test/hadoop/file"));
+	      fail("Should throw FileNotFoundException");
+	    } catch (FileNotFoundException fnfe) {
+	      // expected
+	    }
+ }
+  
+  public void testFsStatus() throws Exception {
+	    FsStatus fsStatus = fs.getStatus();
+	    assertNotNull(fsStatus);
+	    //used, free and capacity are non-negative longs
+	    assertTrue(fsStatus.getUsed() >= 0);
+	    assertTrue(fsStatus.getRemaining() >= 0);
+	    assertTrue(fsStatus.getCapacity() >= 0);
+  }
+	  
 }
