@@ -24,7 +24,7 @@ public class AclPathFilter {
 		} catch (IOException e) {
 			
 		}
-		String stagingRootDir = new Path(conf.get("mapreduce.jobtracker.staging.root.dir", "/tmp/hadoop/mapred/staging")).toString();
+		String stagingRootDir = new Path(conf.get("yarn.app.mapreduce.am.staging-dir",conf.get("mapreduce.jobtracker.staging.root.dir", "/tmp/hadoop/mapred/staging"))).toString();
 		String user;
 		String randid = "\\d*";
 		if (ugi != null) {
@@ -33,8 +33,10 @@ public class AclPathFilter {
 		    user = "dummy";
 		}
 		paths.add("^" + new Path(stagingRootDir, user +  randid +"/.staging").toString() + ".*");
+		paths.add("^" + (new Path(stagingRootDir, user +  randid +"/.staging")).toUri().getPath() + ".*");
 		stagingRootDir = new Path(conf.get("mapreduce.jobtracker.staging.root.dir","/tmp/hadoop/mapred/staging")).toString();
         paths.add("^" + new Path(stagingRootDir, user+"/.staging").toString() + ".*");
+        paths.add("^" + (new Path(stagingRootDir, user+"/.staging")).toUri().getPath() + ".*");
 		
 	}
 	
