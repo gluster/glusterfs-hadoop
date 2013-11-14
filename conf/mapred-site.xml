@@ -17,6 +17,16 @@
     <value>glusterfs:///mapred/system</value>
   </property>
   <property>
+    <name>mapreduce.jobhistory.done-dir</name>
+    <value>glusterfs:///job-history/done</value>
+  </property>
+  
+  <property>
+    <name>mapreduce.jobhistory.intermediate-done-dir</name>
+    <value>glusterfs:///job-history/intermediate-done</value>
+  </property>
+  
+  <property>
     <name>mapreduce.jobtracker.staging.root.dir</name>
     <value>glusterfs:///user</value>
   </property>
