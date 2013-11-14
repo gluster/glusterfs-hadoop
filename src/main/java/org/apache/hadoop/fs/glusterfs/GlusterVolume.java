@@ -30,6 +30,7 @@ import java.util.Arrays;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.slf4j.Logger;
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.permission.FsPermission;
 
 public class GlusterVolume extends RawLocalFileSystem{
+
 
     static final Logger log = LoggerFactory.getLogger(GlusterFileSystemCRC.class);
     public static final URI NAME = URI.create("glusterfs:///");
@@ -85,6 +87,11 @@ public class GlusterVolume extends RawLocalFileSystem{
                 superUser =  conf.get("gluster.daemon.user", null);
                 
                 aclFilter = new AclPathFilter(conf);
+                
+                /* ensure the initial working directory exists */
+                Path workingDirectory = getInitialWorkingDirectory();
+                mkdirs(workingDirectory);
+                
                 //volName=conf.get("fs.glusterfs.volname", null);
                 //remoteGFSServer=conf.get("fs.glusterfs.server", null);
                 
@@ -94,21 +101,60 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         
     }
-
+    
     public File pathToFile(Path path) {
-        String pathString = path.toUri().getRawPath();
-     
-        if(pathString.startsWith(Path.SEPARATOR)){
-            pathString = pathString.substring(1);
-        }
-        
-        return new File(root + Path.SEPARATOR + pathString);
+      checkPath(path);
+      if (!path.isAbsolute()) {
+        path = new Path(getWorkingDirectory(), path);
+      }
+      return new File(root + path.toUri().getPath());
     }
-    
-    public Path fileToPath(File path) {
+  
+    @Override
+    protected Path getInitialWorkingDirectory() {
+		/* apache's unit tests use a default working direcotry like this: */
+       return new Path(this.NAME + "user/" + System.getProperty("user.name"));
+        /* The super impl returns the users home directory in unix */
+		//return super.getInitialWorkingDirectory();
+	}
+
+	public Path fileToPath(File path) {
         return new Path(NAME.toString() + path.toURI().getRawPath().substring(root.length()));
-    }
-    
+     }
+
+     public boolean rename(Path src, Path dst) throws IOException {
+		File dest = pathToFile(dst);
+		
+		/* two HCFS semantics java.io.File doesn't honor */
+		if(dest.exists() && dest.isFile() || !(new File(dest.getParent()).exists())) return false;
+		
+		if (!dest.exists() && pathToFile(src).renameTo(dest)) {
+	      return true;
+	    }
+	    return FileUtil.copy(this, src, this, dst, true, getConf());
+	}
+	  /**
+	   * Delete the given path to a file or directory.
+	   * @param p the path to delete
+	   * @param recursive to delete sub-directories
+	   * @return true if the file or directory and all its contents were deleted
+	   * @throws IOException if p is non-empty and recursive is false 
+	   */
+	@Override
+	public boolean delete(Path p, boolean recursive) throws IOException {
+	    File f = pathToFile(p);
+	    if(!f.exists()){
+	    	/* HCFS semantics expect 'false' if attempted file deletion on non existent file */
+	    	return false;
+	    }else if (f.isFile()) {
+	      return f.delete();
+	    } else if (!recursive && f.isDirectory() && 
+	        (FileUtil.listFiles(f).length != 0)) {
+	      throw new IOException("Directory " + f.toString() + " is not empty");
+	    }
+	    return FileUtil.fullyDelete(f);
+	}
+	  
     public FileStatus[] listStatus(Path f) throws IOException {
         File localf = pathToFile(f);
         FileStatus[] results;

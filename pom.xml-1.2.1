@@ -11,24 +11,23 @@
     <dependency>
 	<groupId>junit</groupId>
 		<artifactId>junit</artifactId>
-		<version>4.9</version>
-	   <scope>test</scope>
+		<version>4.11</version>
 	</dependency>
     <dependency>
         <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-common</artifactId>
-        <version>2.0.5-alpha</version>
+        <artifactId>hadoop-core</artifactId>
+        <version>1.2.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common-test</artifactId>
-      <version>0.22.0</version>
+      <artifactId>hadoop-test</artifactId>
+      <version>1.2.1</version>
       <scope>test</scope>
 	</dependency>
 	<dependency>
 	   <groupId>org.apache.hadoop</groupId>
 	   <artifactId>hadoop-test</artifactId>
-	   <version>1.0.0</version>
+	   <version>1.2.1</version>
            <scope>test</scope>
 	</dependency>
     <dependency>
@@ -48,7 +47,7 @@
       <plugin>
 		<groupId>org.apache.maven.plugins</groupId>
 		<artifactId>maven-surefire-plugin</artifactId>
-        <version>2.4.3</version>
+                <version>2.14</version>
 		<configuration>
 			<!--  
 				run "export GLUSTER_MOUNT=/mnt/glusterfs

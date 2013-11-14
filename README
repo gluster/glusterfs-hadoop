@@ -100,7 +100,7 @@ CONFIGURATION
          The default FileSystem API to use (there is little reason to modify this).
 
   name:  fs.default.name
-  value: glusterfs://server:port
+  value: glusterfs:///
 
          The default name that hadoop uses to represent file as a URI (typically a server:port tuple). Use any host
          in the cluster as the server and any port number. This option has to be in server:port format for hadoop
@@ -115,10 +115,10 @@ CONFIGURATION
   name:  fs.glusterfs.mount
   value: /mnt/glusterfs
 
-         This is the directory that the plugin will use to mount (FUSE mount) the volume.
+         This is the directory where the gluster volume is mounted
 
   name:  fs.glusterfs.server
-  value: 192.168.1.36, hackme.zugzug.org
+  value: localhost
 
          To mount a volume the plugin needs to know the hostname or the IP of a GlusterFS server in the cluster.
          Mention it here.
@@ -180,8 +180,9 @@ The unit tests read test resources from glusterconfig.properties - a file which 
 
 1) edit your .bashrc, or else at your terminal run : 
 
-export GLUSTER_VOLUME=MyVolume <-- replace with your preferred volume name (default is HadoopVol)
-export GLUSTER_HOST=192.0.1.2 <-- replace with your host (default will be determined at runtime in the JVM)
+export GLUSTER_MOUNT=/mnt/glusterfs
+export HCFS_FILE_SYSTEM_CONNECTOR=org.apache.hadoop.hcfs.test.connector.glusterfs.GlusterFileSystemTestConnector
+export HCFS_CLASSNAME=org.apache.hadoop.fs.glusterfs.GlusterFileSystem
 
 2) run: 
    mvn package
