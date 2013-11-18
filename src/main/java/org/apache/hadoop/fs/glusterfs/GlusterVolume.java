@@ -49,7 +49,8 @@ public class GlusterVolume extends RawLocalFileSystem{
     
     protected static GlusterFSXattr attr = null;
     
-    public GlusterVolume(){}
+    public GlusterVolume(){
+    }
     
     public GlusterVolume(Configuration conf){
         this();
@@ -65,6 +66,7 @@ public class GlusterVolume extends RawLocalFileSystem{
          
             try{
                 root=conf.get("fs.glusterfs.mount", null);
+                log.info("Root of Gluster file system is " + root);
                 getfattrcmd = conf.get("fs.glusterfs.getfattrcmd", null);
                 if(getfattrcmd!=null){
                 	attr = new GlusterFSXattr(getfattrcmd);
@@ -85,13 +87,18 @@ public class GlusterVolume extends RawLocalFileSystem{
                 }
                 
                 superUser =  conf.get("gluster.daemon.user", null);
+                log.info("Gluster Daemon for ACLs is: " + superUser);
                 
                 aclFilter = new AclPathFilter(conf);
                 
                 /* ensure the initial working directory exists */
-                Path workingDirectory = getInitialWorkingDirectory();
+                final Path workingDirectory = getInitialWorkingDirectory();
                 mkdirs(workingDirectory);
+                //For hadoop < 1.2.0, when RawLocalFileSystem used 
+                //user.dir instead of user.home
+                setWorkingDirectory(workingDirectory);
                 
+                log.info("Working directory is : "+ getWorkingDirectory());
                 //volName=conf.get("fs.glusterfs.volname", null);
                 //remoteGFSServer=conf.get("fs.glusterfs.server", null);
                 
@@ -110,7 +117,10 @@ public class GlusterVolume extends RawLocalFileSystem{
       return new File(root + path.toUri().getPath());
     }
   
-    @Override
+    /**
+     * Note this method doesn't override anything in hadoop 1.2.0 and 
+     * below.
+     */
     protected Path getInitialWorkingDirectory() {
 		/* apache's unit tests use a default working direcotry like this: */
        return new Path(this.NAME + "user/" + System.getProperty("user.name"));
