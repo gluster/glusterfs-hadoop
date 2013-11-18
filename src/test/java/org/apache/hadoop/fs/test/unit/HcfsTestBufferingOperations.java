@@ -25,7 +25,11 @@ public class HcfsTestBufferingOperations{
 
     @Test
     public void test() throws Exception {
-        FSDataOutputStream os = fSys.create(new Path("/a"));
+        Path out = new Path("a");
+        
+        System.out.println("Writing file to: "+out.makeQualified(fSys));
+        
+        FSDataOutputStream os = fSys.create(out);
         
         int written=0;
         /**
@@ -36,9 +40,11 @@ public class HcfsTestBufferingOperations{
             written+="ASDF".getBytes().length;
             //now, we expect
             System.out.println("Checking if "+ written +" bytes were spilled yet...");
-            Assert.assertTrue("asserting that file not written yet",fSys.getLength(new Path("/a"))==0);
+            Assert.assertTrue("asserting that file not written yet",fSys.getLength(out)==0);
         }
-        
+        os.flush();
+        Assert.assertTrue("asserting that file not written yet",fSys.getLength(out)>=10000);
+
         os.close();
     }
     
