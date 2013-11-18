@@ -88,6 +88,7 @@ public class GlusterVolume extends RawLocalFileSystem{
                 String buffy = conf.get("io.file.buffer.size", null);
                 if(buffy==null || "".compareTo(buffy)==0){
                 	conf.set("io.file.buffer.size", Integer.toString(1024 * 128));
+                	log.info("Set default buffer size:" + conf.get("io.file.buffer.size"));
                 }
                 
                 //volName=conf.get("fs.glusterfs.volname", null);
