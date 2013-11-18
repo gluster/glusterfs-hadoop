@@ -85,6 +85,11 @@ public class GlusterVolume extends RawLocalFileSystem{
                 Path workingDirectory = getInitialWorkingDirectory();
                 mkdirs(workingDirectory);
                 
+                String buffy = conf.get("io.file.buffer.size", null);
+                if(buffy==null || "".compareTo(buffy)==0){
+                	conf.set("io.file.buffer.size", Integer.toString(1024 * 128));
+                }
+                
                 //volName=conf.get("fs.glusterfs.volname", null);
                 //remoteGFSServer=conf.get("fs.glusterfs.server", null);
                 
