@@ -39,8 +39,16 @@ import org.apache.hadoop.fs.permission.FsPermission;
 
 public class GlusterVolume extends RawLocalFileSystem{
 
+    static final Logger log = LoggerFactory.getLogger(GlusterVolume.class);
 
-    static final Logger log = LoggerFactory.getLogger(GlusterFileSystemCRC.class);
+    /**
+     * General reason for these constants is to help us decide
+     * when to override the specified buffer size.  See implementation 
+     * of logic below, which might change overtime.
+     */
+    public static final int OVERRIDE_WRITE_BUFFER_SIZE = 1024 * 4;
+    public static final int OPTIMAL_WRITE_BUFFER_SIZE = 1024 * 128;
+    
     public static final URI NAME = URI.create("glusterfs:///");
     
     protected String root=null;
@@ -84,18 +92,25 @@ public class GlusterVolume extends RawLocalFileSystem{
                     mkdirs(mapredSysDirectory);
                 }
                 
+                /**
+                 *  Ensure the initial working directory exists 
+                 **/
                 superUser =  conf.get("gluster.daemon.user", null);
-                
                 aclFilter = new AclPathFilter(conf);
                 
-                /* ensure the initial working directory exists */
                 Path workingDirectory = getInitialWorkingDirectory();
                 mkdirs(workingDirectory);
-                
-                //volName=conf.get("fs.glusterfs.volname", null);
-                //remoteGFSServer=conf.get("fs.glusterfs.server", null);
-                
-            }catch (Exception e){
+
+                /**
+                 * Write Buffering
+                 */
+                Integer userBufferSize=conf.getInt("io.file.buffer.size", -1);
+                if(userBufferSize == OVERRIDE_WRITE_BUFFER_SIZE || userBufferSize == -1) {
+                	conf.setInt("io.file.buffer.size", OPTIMAL_WRITE_BUFFER_SIZE);
+                }
+                log.info("Write buffer size : " +conf.getInt("io.file.buffer.size",-1)) ;
+            }
+            catch (Exception e){
                 throw new RuntimeException(e);
             }
         }
