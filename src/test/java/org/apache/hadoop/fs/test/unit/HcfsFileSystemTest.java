@@ -71,29 +71,6 @@ public class HcfsFileSystemTest{
   	  fs.delete(getTestRootPath(fs, "test"),true);
     }
     
-    @Test
-    public void testBufferSpill() throws Exception {
-        Path out = new Path("a");
-        
-        FSDataOutputStream os = fs.create(out);
-        
-        int written=0;
-        /**
-         * Assert that writes smaller than 10KB are NOT spilled to disk
-         */
-        while(written<10000){
-            os.write("ASDF".getBytes());
-            written+="ASDF".getBytes().length;
-            //now, we expect
-            Assert.assertTrue("asserting that file not written yet",fs.getLength(out)==0);
-        }
-        os.flush();
-        Assert.assertTrue("asserting that file not written yet",fs.getLength(out)>=10000);
-
-        os.close();
-        fs.delete(out);
-    }
-    
     @org.junit.Test
     public void testTolerantMkdirs() throws Exception{
         Path longPath=new Path("a/b/c/d");
