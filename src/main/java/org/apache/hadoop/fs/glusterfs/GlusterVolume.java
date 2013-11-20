@@ -33,14 +33,22 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RawLocalFileSystem;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.hadoop.fs.permission.FsPermission;
 
 public class GlusterVolume extends RawLocalFileSystem{
 
+    static final Logger log = LoggerFactory.getLogger(GlusterVolume.class);
 
-    static final Logger log = LoggerFactory.getLogger(GlusterFileSystemCRC.class);
+    /**
+     * General reason for these constants is to help us decide
+     * when to override the specified buffer size.  See implementation 
+     * of logic below, which might change overtime.
+     */
+    public static final int OVERRIDE_WRITE_BUFFER_SIZE = 1024 * 4;
+    public static final int OPTIMAL_WRITE_BUFFER_SIZE = 1024 * 128;
+    
     public static final URI NAME = URI.create("glusterfs:///");
     
     protected String root=null;
@@ -85,24 +93,27 @@ public class GlusterVolume extends RawLocalFileSystem{
                 if(!exists(mapredSysDirectory)){
                     mkdirs(mapredSysDirectory);
                 }
-                
-                superUser =  conf.get("gluster.daemon.user", null);
-                log.info("Gluster Daemon for ACLs is: " + superUser);
-                
+                //ACL setup
                 aclFilter = new AclPathFilter(conf);
-                
-                /* ensure the initial working directory exists */
-                final Path workingDirectory = getInitialWorkingDirectory();
+				superUser =  conf.get("gluster.daemon.user", null);
+				log.info("mapreduce/superuser daemon : " + superUser);
+
+				//Working directory setup
+                Path workingDirectory = getInitialWorkingDirectory();
                 mkdirs(workingDirectory);
-                //For hadoop < 1.2.0, when RawLocalFileSystem used 
-                //user.dir instead of user.home
                 setWorkingDirectory(workingDirectory);
-                
                 log.info("Working directory is : "+ getWorkingDirectory());
-                //volName=conf.get("fs.glusterfs.volname", null);
-                //remoteGFSServer=conf.get("fs.glusterfs.server", null);
-                
-            }catch (Exception e){
+
+                /**
+                 * Write Buffering
+                 */
+                Integer userBufferSize=conf.getInt("io.file.buffer.size", -1);
+                if(userBufferSize == OVERRIDE_WRITE_BUFFER_SIZE || userBufferSize == -1) {
+                	conf.setInt("io.file.buffer.size", OPTIMAL_WRITE_BUFFER_SIZE);
+                }
+                log.info("Write buffer size : " +conf.getInt("io.file.buffer.size",-1)) ;
+            }
+            catch (Exception e){
                 throw new RuntimeException(e);
             }
         }
