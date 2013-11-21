@@ -46,7 +46,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mortbay.log.Log;
 
 /**
  * Unit test for HCFS classes.
