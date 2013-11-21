@@ -131,6 +131,9 @@ public class HcfsFileSystemTest{
         assertFalse(fs.exists(new Path("test1")));
     }
 
+    /**
+     * Warning: this test only passes if run as root.  
+     */
     @Test
     public void testGroupOwnership() throws Exception{
         Path myFile=new Path("filePerm.txt");
