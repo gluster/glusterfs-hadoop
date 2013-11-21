@@ -26,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -198,11 +199,22 @@ public class GlusterVolume extends RawLocalFileSystem{
           try {
             results[j] = getFileStatus(fileToPath(names[i]));
             j++;
-          } catch (FileNotFoundException e) {
+          } 
+          catch (FileNotFoundException e) {
             // ignore the files not found since the dir list may have have changed
             // since the names[] list was generated.
           }
         }
+        
+        /**
+         * Sort before returning... Necessary to satisfy testListStatus method
+         * which asserts sorted return values. 
+         */
+        Arrays.sort(results, new Comparator<FileStatus>(){
+            public int compare(FileStatus o1,FileStatus o2){
+                return o1.getPath().getName().compareTo(o2.getPath().getName());
+            }
+        });
         if (j == names.length) {
           return results;
         }

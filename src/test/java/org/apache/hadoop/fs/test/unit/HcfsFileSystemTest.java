@@ -46,6 +46,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mortbay.log.Log;
 
 /**
  * Unit test for HCFS classes.
@@ -131,6 +132,9 @@ public class HcfsFileSystemTest{
         assertFalse(fs.exists(new Path("test1")));
     }
 
+    /**
+     * Warning: this test only passes if run as root.  
+     */
     @Test
     public void testGroupOwnership() throws Exception{
         Path myFile=new Path("filePerm.txt");
