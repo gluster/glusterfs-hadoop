@@ -1,0 +1,78 @@
+Name: $name
+Version: $version
+Release: $release
+#if $epoch
+Epoch: $epoch
+#end if
+License: Apache
+Summary: GlusterFS Hadoop Plugin
+Group: Application/File
+
+#set $i = 0
+#for $artifact in $all_artifacts
+Source$i: $artifact
+#set $i += 1
+#end for
+
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildArch: noarch
+
+%description
+Gluster's Unified File and Object Storage unifies NAS and object storage
+technology. This provides a system for data storage that enables users to access
+the same data as an object and as a file, simplifying management and controlling
+storage costs.
+
+%prep
+
+%build
+
+%install
+rm -rf %{buildroot}
+/usr/bin/install -d %{buildroot}%{_javadir}
+/usr/bin/install -d %{buildroot}%{_javadir}/poms
+/usr/bin/install -d %{buildroot}%{_javadir}/zips
+/usr/bin/install -d %{buildroot}%{_javadir}/conf
+
+pwd
+find -name core-site.xml
+### /usr/bin/install -m 644 conf/core-site.xml %{buildroot}%{_javadir}/conf/core-site.xml
+
+#set $i = 0
+#for $artifact in $all_artifacts
+  #if $artifact.endswith('.jar')
+/usr/bin/install -m 644 %{SOURCE$i} %{buildroot}%{_javadir}
+  #elif $artifact.endswith('.pom')
+/usr/bin/install -m 644 %{SOURCE$i} %{buildroot}%{_javadir}/poms
+  #elif $artifact.endswith('.zip')
+/usr/bin/install -m 644 %{SOURCE$i} %{buildroot}%{_javadir}/zips
+  #end if
+  #set $i += 1
+#end for
+
+%clean
+rm -rf %{buildroot}
+
+%files
+%defattr(-,root,root,-)
+%dir %{_javadir}/poms
+%dir %{_javadir}/zips
+%dir %{_javadir}/conf
+
+### %{_javadir}/conf/core-site.xml
+#set $i = 0
+#for $artifact in $all_artifacts
+  #if $artifact.endswith('.jar')
+%{_javadir}/$artifact
+  #elif $artifact.endswith('.pom')
+%{_javadir}/poms/$artifact
+  #elif $artifact.endswith('.zip')
+%{_javadir}/zips/$artifact
+  #end if
+  #set $i += 1
+#end for
+
+%changelog
+* Fri May 18 2012 Anthony Towns <atowns@redhat.com> - 0.20.2-0
+- Initial build
+
