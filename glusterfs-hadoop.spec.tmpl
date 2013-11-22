@@ -18,10 +18,9 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
 %description
-Gluster's Unified File and Object Storage unifies NAS and object storage
-technology. This provides a system for data storage that enables users to access
-the same data as an object and as a file, simplifying management and controlling
-storage costs.
+The Gluster hadoop FileSystem implemenataion for both hadoop 1x and 2x.  This
+java plugin for hadoop (i.e. it is added into /usr/lib/hadoop/lib on all nodes
+in a cluster) allows MapReduce and YARN to run on top of gluster.  
 
 %prep
 
@@ -75,4 +74,6 @@ rm -rf %{buildroot}
 %changelog
 * Fri May 18 2012 Anthony Towns <atowns@redhat.com> - 0.20.2-0
 - Initial build
+* Fri Nov 22 2013 Jay Vyas <jvyas@rehdat.com> 2.1.4
+- Initial import into the glusterfs-hadoop plugin as part of our deployment. 
 
