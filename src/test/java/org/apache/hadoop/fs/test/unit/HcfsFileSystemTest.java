@@ -25,13 +25,15 @@
 
 package org.apache.hadoop.fs.test.unit;
 
-import static org.apache.hadoop.fs.FileSystemTestHelper.getTestRootPath;
+//import static org.apache.hadoop.fs.FileSystemTestHelper.getTestRootPath;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -68,7 +70,7 @@ public class HcfsFileSystemTest{
 
     @After
     public void tearDown() throws Exception {
-  	  fs.delete(getTestRootPath(fs, "test"),true);
+  	  //fs.delete(getTestRootPath(fs, "test"),true);
     }
     
     @org.junit.Test
@@ -130,29 +132,6 @@ public class HcfsFileSystemTest{
 
         assertFalse(fs.exists(new Path("test1")));
     }
-
-    @Test
-    public void testGroupOwnership() throws Exception{
-        Path myFile=new Path("filePerm.txt");
-        //Create a file 
-        fs.create(myFile);
-        
-        //Set the initial owner
-        fs.setOwner(myFile, "daemon", "root");
-        String oldOwner = fs.getFileStatus(myFile).getOwner(); 
-        String oldGroup = fs.getFileStatus(myFile).getGroup();
-        Assert.assertEquals("daemon",oldOwner);
-        Assert.assertEquals("root",oldGroup);
-        
-        //Now, change it to "root" "wheel" 
-        fs.setOwner(myFile, "root", "wheel");
-        String newOwner = fs.getFileStatus(myFile).getOwner(); 
-        String newGroup = fs.getFileStatus(myFile).getGroup();
-        Assert.assertEquals("root",newOwner);
-        Assert.assertEquals("wheel",newGroup);
-        
-        fs.delete(myFile,true);
-    }
     
     @org.junit.Test
     public void testPermissions() throws Exception{
@@ -172,9 +151,9 @@ public class HcfsFileSystemTest{
         
         /* directory permissions */
         Path directory = new Path("aa/bb/cc");
-        perm = 0700;
+        perm = 0777;
         fs.mkdirs(directory, new FsPermission(perm));
-        assertEquals(fs.getFileStatus(directory).getPermission().toShort(), perm);
+        assertEquals(perm,fs.getFileStatus(directory).getPermission().toShort());
         fs.delete(new Path("aa"),true);
         assertFalse(fs.exists(directory));
         
@@ -184,6 +163,34 @@ public class HcfsFileSystemTest{
         assertEquals(fs.getFileStatus(directory).getPermission().toShort(), perm);
         fs.delete(new Path("aa"),true);
         assertFalse(fs.exists(directory));
+    }
+    
+    /**
+     * Testing that the hadoop "fs.permissions.umask-mode" umask is honored.
+     * Borrowed from FileSystemContractBaseTests, as this hasnt been implemented
+     * in FSMainOperations tests.
+     */
+    protected final static String TEST_UMASK = "062";
+    @Test
+    public void testMkdirsWithUmask() throws Exception {
+      Configuration conf = fs.getConf();
+      String oldUmask = conf.get(CommonConfigurationKeys.FS_PERMISSIONS_UMASK_KEY);
+      try {
+        conf.set(CommonConfigurationKeys.FS_PERMISSIONS_UMASK_KEY, TEST_UMASK);
+        final Path dir = new Path("/test/newDir");
+        assertTrue(fs.mkdirs(dir, new FsPermission((short)0777)));
+        FileStatus status = fs.getFileStatus(dir);
+        assertTrue(status.isDirectory());
+
+        String target = Integer.toOctalString((short)0715);
+        String result = Integer.toOctalString(status.getPermission().toShort());
+        assertEquals(
+                    target , result 
+                );
+      }
+      finally {
+        conf.set(CommonConfigurationKeys.FS_PERMISSIONS_UMASK_KEY, oldUmask);
+      }
     }
     
     @org.junit.Test

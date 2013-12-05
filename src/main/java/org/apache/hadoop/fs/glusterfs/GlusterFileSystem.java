@@ -33,17 +33,19 @@ import java.io.IOException;
 import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.FilterFileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GlusterFileSystem extends FilterFileSystem{
 
     protected static final Logger log=LoggerFactory.getLogger(GlusterFileSystem.class);
-   
+ 
     public GlusterFileSystem(){
         super(new GlusterVolume());
         Version v=new Version();
@@ -51,7 +53,11 @@ public class GlusterFileSystem extends FilterFileSystem{
         log.info("GIT INFO="+v);
         log.info("GIT_TAG="+v.getTag());
     }
-
+    
+    public String getScheme() {
+        return super.getRawFileSystem().getScheme();
+    }
+    
     /** Convert a path to a File. */
     public File pathToFile(Path path){
         return ((GlusterVolume) fs).pathToFile(path);

@@ -1,6 +1,5 @@
 package org.apache.hadoop.fs.test.unit;
 
-import static org.apache.hadoop.fs.FileSystemTestHelper.getTestRootPath;
 
 import java.io.IOException;
 
@@ -44,7 +43,7 @@ public class HCFSPerformanceIOTests {
     }
 
     public Path bufferoutpath(){
-        return getTestRootPath(fs, "buffering_test"+HCFSPerformanceIOTests.class.getName());
+        return new Path("/tmp/buffering_test"+HCFSPerformanceIOTests.class.getName());
     }
 
     @After

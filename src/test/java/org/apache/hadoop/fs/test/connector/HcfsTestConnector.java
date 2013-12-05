@@ -24,7 +24,7 @@ public class HcfsTestConnector implements HcfsTestConnectorInterface{
 			return hcfs;
 		} catch (Exception e) {
 			throw new RuntimeException("Cannont instatiate HCFS. Error:\n " + e);
-		} 
+		}
 	}
 
 	public FileSystem create() throws IOException {

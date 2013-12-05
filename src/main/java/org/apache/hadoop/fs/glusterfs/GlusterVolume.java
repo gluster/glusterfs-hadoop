@@ -26,19 +26,23 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Comparator;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.CommonConfigurationKeys;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RawLocalFileSystem;
+import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GlusterVolume extends RawLocalFileSystem{
 
+    
     static final Logger log = LoggerFactory.getLogger(GlusterVolume.class);
 
     /**
@@ -59,6 +63,10 @@ public class GlusterVolume extends RawLocalFileSystem{
     
     public GlusterVolume(){
     }
+
+    public String getScheme(){
+        return this.NAME.toString();
+    }
     
     public GlusterVolume(Configuration conf){
         this();
@@ -66,6 +74,15 @@ public class GlusterVolume extends RawLocalFileSystem{
     }
     public URI getUri() { return NAME; }
     
+    @Override
+    public boolean mkdirs(Path f,FsPermission permission) throws IOException {
+         // Note, since umask for unix accessed file system isn't controlled via FS_PERMISSIONS_UMASK_KEY,
+         // there might be some odd "cascading" umasks here      
+        FsPermission umask =  FsPermission.getUMask(getConf());
+        FsPermission masked = permission.applyUMask(umask);
+        return super.mkdirs(f,masked);
+    }
+
     public void setConf(Configuration conf){
         log.info("Initializing gluster volume..");
         super.setConf(conf);
@@ -143,25 +160,33 @@ public class GlusterVolume extends RawLocalFileSystem{
         return new Path(NAME.toString() + path.toURI().getRawPath().substring(root.length()));
      }
 
-     public boolean rename(Path src, Path dst) throws IOException {
-		File dest = pathToFile(dst);
-		
-		/* two HCFS semantics java.io.File doesn't honor */
-		if(dest.exists() && dest.isFile() || !(new File(dest.getParent()).exists())) return false;
-		
-		if (!dest.exists() && pathToFile(src).renameTo(dest)) {
-	      return true;
-	    }
-	    return FileUtil.copy(this, src, this, dst, true, getConf());
-	}
-	  /**
-	   * Delete the given path to a file or directory.
-	   * @param p the path to delete
-	   * @param recursive to delete sub-directories
-	   * @return true if the file or directory and all its contents were deleted
-	   * @throws IOException if p is non-empty and recursive is false 
-	   */
-	@Override
+    public boolean rename(Path src, Path dst) throws IOException {
+        File dest = pathToFile(dst);
+        
+        if(dest.exists() && dest.isFile()) 
+            return false;
+
+        if(! new File(pathToFile(src).toString()).exists()){
+            //passes ContractBaseTest: testRenameNonExistantPath
+            //return false;
+            //passes FsMainOperationsTest: testRenameNonExistantPath
+            throw new FileNotFoundException(pathToFile(src)+"");
+        }
+
+        if (!dest.exists() && pathToFile(src).renameTo(dest)) {
+            return true;
+        }
+        return FileUtil.copy(this, src, this, dst, true, getConf());
+    }
+    
+    /**
+    * Delete the given path to a file or directory.
+    * @param p the path to delete
+    * @param recursive to delete sub-directories
+    * @return true if the file or directory and all its contents were deleted
+    * @throws IOException if p is non-empty and recursive is false 
+    */
+    @Override
 	public boolean delete(Path p, boolean recursive) throws IOException {
 	    File f = pathToFile(p);
 	    if(!f.exists()){
@@ -178,35 +203,59 @@ public class GlusterVolume extends RawLocalFileSystem{
 	  
     public FileStatus[] listStatus(Path f) throws IOException {
         File localf = pathToFile(f);
-        FileStatus[] results;
-
+        
+        //f is a file: returns FileStatus[]{f}
         if (!localf.exists()) {
-          throw new FileNotFoundException("File " + f + " does not exist");
+          throw new FileNotFoundException("File at path: " + f + " does not exist");
         }
+        GlusterFileStatus gfstat=new GlusterFileStatus(localf, getDefaultBlockSize(), this) ;
         if (localf.isFile()) {
-          return new FileStatus[] {
-            new GlusterFileStatus(localf, getDefaultBlockSize(), this) };
+          return new FileStatus[] { gfstat};
         }
+        
+        //f is a directory: returns FileStatus[] {f1, f2, f3, ... } 
+        else {
+            //Patch for testListStatusThrowsExceptionForUnreadableDir , may need to update this after HADOOP-7352 : 
+            if(! gfstat.getPermission().getUserAction().implies(FsAction.READ)){
+                throw new IOException(
+                        "FileStatus indicates this is an unreadable file!   Permissions=" + gfstat.getPermission().toShort() + " / Path=" + gfstat.getPath());
+            }
+            
+            FileStatus[] results;
+            File[] names = localf.listFiles();
+    
+            
+            
+            if (names == null) {
+              return null;
+            }
+            results = new FileStatus[names.length];
+            int j = 0;
+            for (int i = 0; i < names.length; i++) {
+              try {
+                results[j] = getFileStatus(fileToPath(names[i]));
+                j++;
+              } 
+              catch (FileNotFoundException e) {
 
-        File[] names = localf.listFiles();
-        if (names == null) {
-          return null;
+                // ignore the files not found since the dir list may have have changed
+                // since the names[] list was generated.
+              }
+            }
+            
+            if(getConf().getBoolean("fs.glusterfs.list_status_sorted", false)){
+                Arrays.sort(results, new Comparator<FileStatus>(){
+                    public int compare(FileStatus o1,FileStatus o2){
+                        return o1.getPath().getName().compareTo(o2.getPath().getName());
+                    }
+                });
+            }
+
+            if (j == names.length) {
+              return results;
+            }
+            return Arrays.copyOf(results, j);
         }
-        results = new FileStatus[names.length];
-        int j = 0;
-        for (int i = 0; i < names.length; i++) {
-          try {
-            results[j] = getFileStatus(fileToPath(names[i]));
-            j++;
-          } catch (FileNotFoundException e) {
-            // ignore the files not found since the dir list may have have changed
-            // since the names[] list was generated.
-          }
-        }
-        if (j == names.length) {
-          return results;
-        }
-        return Arrays.copyOf(results, j);
     }
     
     public FileStatus getFileStatus(Path f) throws IOException {
