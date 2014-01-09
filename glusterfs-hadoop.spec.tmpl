@@ -1,4 +1,4 @@
-Name: glusterfs-hadoop
+Name: rhs-hadoop
 Version: $version
 Release: $release
 #if $epoch
@@ -20,7 +20,9 @@ BuildArch: noarch
 
 %description
 The Gluster Filesystem Hadoop implementation for both Hadoop 1.x and 2.x.  This
-Java plugin for Hadoop allows MapReduce and YARN to run on top of Gluster.  
+Java plugin for Hadoop allows MapReduce and YARN to run on top of Gluster, by providing the
+GlusterFileSystem (1.x) and GlusterFs (2.x) implementations.  These should be referenced
+in the hadoop configuration files and loaded at runtime as the FileSystem implementation. 
 
 %prep
 
@@ -51,6 +53,9 @@ rm -rf %{buildroot}
 #end for
 
 %changelog
+* Wed Jan 9 2014 Jay Vyas <jvyas@redhat.com> 2.1.4 renamed
+- rename to rhs-hadoop for release
+
 * Fri Nov 22 2013 Jay Vyas <jvyas@rehdat.com> 2.1.4
 - Initial import into the glusterfs-hadoop plugin as part of our deployment. 
 
