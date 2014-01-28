@@ -1,7 +1,5 @@
 package org.apache.hadoop.fs.test.unit;
 
-import static org.apache.hadoop.fs.FileSystemTestHelper.getTestRootPath;
-
 import java.io.File;
 
 import junit.framework.Assert;
@@ -55,6 +53,6 @@ public class HCFSTestWorkingDir{
     
     @After
     public void tearDown() throws Exception{
-        fSys.delete(getTestRootPath(fSys, "test"), true);
+        //fSys.delete(getTestRootPath(fSys, "test"), true);
     }
 }

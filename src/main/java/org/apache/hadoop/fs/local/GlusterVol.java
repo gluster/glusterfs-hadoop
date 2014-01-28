@@ -19,7 +19,6 @@ public class GlusterVol extends RawLocalFsG{
     
     GlusterVol(final Configuration conf) throws IOException, URISyntaxException {
         this(GlusterVolume.NAME, conf);
-        
     }
       
       /**

@@ -119,5 +119,9 @@ public class GlusterFileStatus extends FileStatus{
         }
         super.write(out);
     }
+    
+    public String toDebugString(){
+        return "path ="+this.getPath() + " group="+this.getGroup() + " owner=" + this.getOwner() + " modtime=" + this.getModificationTime() + " permission=" + this.getPermission().toShort();
+    }
 
 }
