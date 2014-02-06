@@ -59,6 +59,9 @@ rm -rf %{buildroot}
 %{_sysconfdir}/sudoers.d/20_glusterfs_hadoop_sudoers
 
 %changelog
+* Wed Feb 06 2014 Jeff Vance <jvance@redhat.com> 2.1.6
+- fix name from "gluster" to "glusterfs-hadoop"
+- minor README updates
 * Wed Feb 05 2014 Jeff Vance <jvance@redhat.com> 2.1.5-2
 - installs the sudoers file. BZ 1059986
 * Wed Jan 9 2014 Jay Vyas <jvyas@redhat.com> 2.1.4-1 
