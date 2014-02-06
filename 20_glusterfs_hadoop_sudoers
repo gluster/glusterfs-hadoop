@@ -1,0 +1,3 @@
+# GlusterFS sudo settings for multi-tennancy
+Defaults:%hadoop !requiretty
+%hadoop ALL=NOPASSWD:/usr/bin/getfattr -m . -n trusted.glusterfs.pathinfo *
