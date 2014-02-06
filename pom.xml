@@ -5,7 +5,7 @@
   <artifactId>glusterfs</artifactId>
   <packaging>jar</packaging>
   <version>2.1.5-SNAPSHOT</version>
-  <name>glusterfs</name>
+  <name>glusterfs-hadoop</name>
   <url>http://maven.apache.org</url>
   <dependencies>
     <dependency>
