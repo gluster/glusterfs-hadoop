@@ -139,14 +139,11 @@ FOR HACKERS
 
 * Source Layout (./src/)
 
-org.apache.hadoop.fs.glusters/GlusterFSBrickClass.java
-org.apache.hadoop.fs.glusters/GlusterFSXattr.java            <--- Fetch/Parse Extended Attributes of a file
-org.apache.hadoop.fs.glusters/GlusterFUSEInputStream.java    <--- Input Stream (instantiated during open() calls; 
-org.apache.hadoop.fs.glusters/GlusterFSBrickRepl.java
-org.apache.hadoop.fs.glusters/GlusterFUSEOutputStream.java   <--- Output Stream (instantiated during creat() calls)
-org.apache.hadoop.fs.glusters/GlusterFileSystem.java         <--- Entry Point for the plugin (extends Hadoop FileSystem class)
+For the overall architecture, see.  Currently, we use the hadoop RawLocalFileSystem as 
+the basis - and wrap it with the GlusterVolume class.  That class is then used by the 
+Hadoop 1x (GlusterFileSystem) and Hadoop 2x (GlusterFs) adapters.
 
-org.gluster.test.AppTest.java                  <--- Your test cases go here (if any :-))
+ https://forge.gluster.org/hadoop/pages/Architecture
 
 ./tools/build-deploy-jar.py                                                  <--- Build and Deployment Script
 ./conf/core-site.xml                                                         <--- Sample configuration file
@@ -160,9 +157,6 @@ org.gluster.test.AppTest.java                  <--- Your test cases go here (if 
 JENKINS
 -------
 
-  At the moment, you need to run as root - this can be done by modifying this line in the jenkins init.d/ script.
-  This is because of the mount command issued in the GlusterFileSystem. 
-  
   #Method 1) Modify JENKINS_USER in /etc/sysconfig/jenkins
   JENKINS_USER=root
 
@@ -181,8 +175,43 @@ The unit tests read test resources from glusterconfig.properties - a file which 
 1) edit your .bashrc, or else at your terminal run : 
 
 export GLUSTER_MOUNT=/mnt/glusterfs
-export HCFS_FILE_SYSTEM_CONNECTOR=org.apache.hadoop.hcfs.test.connector.glusterfs.GlusterFileSystemTestConnector
+export HCFS_FILE_SYSTEM_CONNECTOR=org.apache.hadoop.fs.test.connector.glusterfs.GlusterFileSystemTestConnector 
 export HCFS_CLASSNAME=org.apache.hadoop.fs.glusterfs.GlusterFileSystem
 
+(in eclipse - see below , you will add these at the "Run Configurations" menu,
+in VM arguments, prefixed with -D, for example, "-DGLUSTER_MOUNT=x -DHCFS_FILE_SYSTEM_CONNECTOR=y ...")
+
 2) run: 
-   mvn package
+   mvn clean package 
+   
+3) The jar artifact will be in target/
+
+DEVELOPING
+----------
+
+0) Create a mock gluster mount: 
+ 
+ #Create raw disk and format it...
+ truncate -s 1G /export/debugging_fun.brick
+ sudo mkfs.xfs  /export/debugging_fun.brick
+
+ #Mount it as loopback fs
+ mount -o loop /export/debugging_fun.brick /mnt/mybrick ;
+
+ #Now make a mount point for it, and also, for gluster itself
+ mkdir /mnt/mybrick/glusterbrick
+ mkdir /mnt/glusterfs
+ MNT="/mnt/glusterfs"
+ BRICK="/mnt/mybrick/glusterbrick"
+ 
+ #Create a gluster volume that writes to the brick
+ sudo gluster volume create HadoopVol 10.10.61.230:$BRICK 
+
+ #Mount the volume on top of the newly created brick
+ mount -t glusterfs mount -t glusterfs $(hostname):HadoopVol $MNT
+
+1) Run "mvn eclipse:eclipse", and import into eclipse.
+
+2) Add the exported env variables above via Run Configurations as described in the above section.
+
+3) Develop and run unit tests as you would any other java app. 
