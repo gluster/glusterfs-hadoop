@@ -4,7 +4,9 @@
   <groupId>org.apache.hadoop.fs.glusterfs</groupId>
   <artifactId>glusterfs</artifactId>
   <packaging>jar</packaging>
-  <version>2.1.5-SNAPSHOT</version>
+  <!-- from now, we will update version manually 
+       and ignore maven snapshot features -->
+  <version>2.1.6</version>
   <name>glusterfs-hadoop</name>
   <url>http://maven.apache.org</url>
   <dependencies>
