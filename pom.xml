@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.hadoop.fs.glusterfs</groupId>
-  <artifactId>glusterfs</artifactId>
+  <artifactId>glusterfs-hadoop</artifactId>
   <packaging>jar</packaging>
   <!-- from now, we will update version manually 
        and ignore maven snapshot features -->
