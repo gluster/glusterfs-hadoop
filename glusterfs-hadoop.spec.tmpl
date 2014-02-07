@@ -1,6 +1,6 @@
 Name: rhs-hadoop
 Version: $version
-# release number is automatically updated when soure version is the same
+# release number is automatically updated when source version is the same
 Release: $release
 #if $epoch
 Epoch: $epoch
@@ -12,6 +12,7 @@ Group: Application/File
 #for $i, $artifact in $enumerate($all_artifacts)
 Source$i: $artifact
 #end for
+Source100: 20_glusterfs_hadoop_sudoers
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
@@ -43,7 +44,7 @@ rm -rf %{buildroot}
 #end for
 
 # move sudoers file to /etc/sudoers.d/
-install -m 644 20_glusterfs_hadoop_sudoers %{buildroot}%{_sysconfdir}/sudoers.d/
+install -m 644 %{SOURCE100} %{buildroot}%{_sysconfdir}/sudoers.d/
 
 %clean
 rm -rf %{buildroot}
@@ -62,8 +63,10 @@ rm -rf %{buildroot}
 * Wed Feb 06 2014 Jeff Vance <jvance@redhat.com> 2.1.6
 - fix name from "gluster" to "glusterfs-hadoop"
 - minor README updates
+
 * Wed Feb 05 2014 Jeff Vance <jvance@redhat.com> 2.1.5-2
 - installs the sudoers file. BZ 1059986
+
 * Wed Jan 9 2014 Jay Vyas <jvyas@redhat.com> 2.1.4-1 
 - rename to rhs-hadoop for release
 
