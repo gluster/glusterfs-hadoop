@@ -26,6 +26,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Hashtable;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -48,23 +50,54 @@ public class GlusterVolume extends RawLocalFileSystem{
      */
     public static final int OVERRIDE_WRITE_BUFFER_SIZE = 1024 * 4;
     public static final int OPTIMAL_WRITE_BUFFER_SIZE = 1024 * 128;
+    public static final int DEFAULT_BLOCK_SIZE = 64 * 1024 * 1024;
     
-    public static final URI NAME = URI.create("glusterfs:///");
-    
-    protected String root=null;
-
-  
+    protected URI NAME = null;
+ 
+    protected Hashtable<String,String> volumes=new Hashtable<String,String>();
+    protected String default_volume = null;
+    private Path workingDir;
     
     protected static GlusterFSXattr attr = null;
     
-    public GlusterVolume(){
-    }
+    public GlusterVolume(){}
     
     public GlusterVolume(Configuration conf){
         this();
         this.setConf(conf);
     }
+    
     public URI getUri() { return NAME; }
+    
+    public void initialize(URI uri, Configuration conf) throws IOException {
+        /* we only really care about the URI up to the path, so strip other things off */
+        String auth = uri.getAuthority();
+        if(auth==null)
+            auth = "";
+        this.NAME = URI.create(uri.getScheme() + "://" + auth + "/") ;
+        super.initialize(this.NAME, conf);
+    }
+    
+    /*
+     *  This expands URIs to include 'default' values.  
+     *  For instance, glusterfs:///path would expand to glusterfs://defaultvolume/path
+     */
+    protected URI canonicalizeUri(URI uri) {
+        String auth = uri.getAuthority();
+        if(auth==null)
+            auth = default_volume;
+        return URI.create(uri.getScheme() + "://" + auth + "/" + uri.getPath()) ;
+    }
+    
+    /* check if a path is on the same volume as this instance */
+    public boolean sameVolume(Path p){
+        URI thisUri = canonicalizeUri(this.NAME);
+        URI thatUri = canonicalizeUri(p.toUri());
+        if(!thatUri.getScheme().equalsIgnoreCase(thisUri.getScheme())) return false;
+        if((thatUri.getAuthority()==null && thisUri.getAuthority()==null)) return true;
+        return (thatUri.getAuthority()!=null && thatUri.getAuthority().equalsIgnoreCase(thisUri.getAuthority()));
+        
+    }
     
     public void setConf(Configuration conf){
         log.info("Initializing gluster volume..");
@@ -73,8 +106,18 @@ public class GlusterVolume extends RawLocalFileSystem{
         if(conf!=null){
          
             try{
-                root=conf.get("fs.glusterfs.mount", null);
-                log.info("Root of Gluster file system is " + root);
+                String[] v=conf.get("fs.glusterfs.volumes", "").split(",");
+                default_volume = v[0];
+                for(int i=0;i<v.length;i++){
+                    String vol = conf.get("fs.glusterfs.volume.fuse." + v[i] , null);
+                    
+                    if(vol==null){
+                        log.error("Could not find property: fs.glusterfs.fuse." + v[i]);
+                        throw new RuntimeException("Could not find mount point for volume: "+ v[i]);
+                    }
+                    volumes.put(v[i],vol);
+                    log.info("Gluster volume: " + v[i] + " at : " + volumes.get(v[i]));
+                }
                 getfattrcmd = conf.get("fs.glusterfs.getfattrcmd", null);
                 if(getfattrcmd!=null){
                 	attr = new GlusterFSXattr(getfattrcmd);
@@ -90,12 +133,15 @@ public class GlusterVolume extends RawLocalFileSystem{
                     mapredSysDirectory = new Path(conf.get("mapred.system.dir", "glusterfs:///mapred/system"));
                 }
                 
-                if(!exists(mapredSysDirectory)){
+                if(sameVolume(mapredSysDirectory) && !exists(mapredSysDirectory) ){
                     mkdirs(mapredSysDirectory);
                 }
                 //Working directory setup
+                
                 Path workingDirectory = getInitialWorkingDirectory();
-                mkdirs(workingDirectory);
+                if(sameVolume(workingDirectory) && !exists(workingDirectory) ){
+                    mkdirs(workingDirectory);
+                }
                 setWorkingDirectory(workingDirectory);
                 log.info("Working directory is : "+ getWorkingDirectory());
 
@@ -107,6 +153,18 @@ public class GlusterVolume extends RawLocalFileSystem{
                 	conf.setInt("io.file.buffer.size", OPTIMAL_WRITE_BUFFER_SIZE);
                 }
                 log.info("Write buffer size : " +conf.getInt("io.file.buffer.size",-1)) ;
+                
+                /**
+                 * Default block size
+                 */
+                
+                Long defaultBlockSize=conf.getLong("fs.local.block.size", -1);
+                
+                if(defaultBlockSize == -1) {
+                    conf.setInt("fs.local.block.size", DEFAULT_BLOCK_SIZE);
+                }
+                log.info("Default block size : " +conf.getInt("fs.local.block.size",-1)) ;
+                
             }
             catch (Exception e){
                 throw new RuntimeException(e);
@@ -117,25 +175,67 @@ public class GlusterVolume extends RawLocalFileSystem{
     
     public File pathToFile(Path path) {
       checkPath(path);
+      
       if (!path.isAbsolute()) {
         path = new Path(getWorkingDirectory(), path);
       }
-      return new File(root + path.toUri().getPath());
-    }
-  
-    /**
-     * Note this method doesn't override anything in hadoop 1.2.0 and 
-     * below.
-     */
-    protected Path getInitialWorkingDirectory() {
-		/* apache's unit tests use a default working direcotry like this: */
-       return new Path(this.NAME + "user/" + System.getProperty("user.name"));
-        /* The super impl returns the users home directory in unix */
-		//return super.getInitialWorkingDirectory();
-	}
+      
+      String volume = path.toUri().getAuthority();
+      String scheme = path.toUri().getScheme();
+      
+      if(scheme==null || "".equals(scheme)){
+         return pathToFile(path.makeQualified(this));
+        
+      }else if(volume==null){
+          volume = default_volume;
+      }
 
+      return new File(this.volumes.get(volume) + "/" + path.toUri().getPath());
+    }
+
+    protected Path getInitialWorkingDirectory() {
+		/* initial home directory is always on the default volume */
+       return new Path("glusterfs:///user/" + System.getProperty("user.name"));
+	}
+    
+    private Path makeAbsolute(Path f) {
+        if (f.isAbsolute()) {
+          return f;
+        } else {
+          return new Path(workingDir, f);
+        }
+      }
+    
+    /**
+     * Set the working directory to the given directory.
+     */
+
+    public void setWorkingDirectory(Path newDir) {
+      workingDir = makeAbsolute(newDir);
+      // avoid checking the path as the working directory may not exist on this volume.
+      //checkPath(workingDir);
+      
+    }
+    
 	public Path fileToPath(File path) {
-        return new Path(NAME.toString() + path.toURI().getRawPath().substring(root.length()));
+	    Enumeration<String> all = volumes.keys();
+	    String rawPath = path.toURI().getRawPath();
+	    String volume = null;
+	    String root = null;
+	    
+	    while(volume==null && all.hasMoreElements()){
+	        String nextVolume = all.nextElement();
+	        String nextPath = volumes.get(nextVolume);
+	        if(rawPath.startsWith(nextPath)){
+	            volume = nextVolume;
+	            root = nextPath;
+	        }
+	    }
+	    
+	    if(default_volume.equalsIgnoreCase(volume))
+	        volume = "";
+	    
+        return new Path("glusterfs://" + volume + "/" + rawPath.substring(root.length()));
      }
 
      public boolean rename(Path src, Path dst) throws IOException {
@@ -205,7 +305,15 @@ public class GlusterVolume extends RawLocalFileSystem{
     }
     
     public FileStatus getFileStatus(Path f) throws IOException {
-        File path = pathToFile(f);
+        
+        File path = null;
+        
+        try{
+               path =  pathToFile(f);
+        }catch(IllegalArgumentException ex){
+            throw new FileNotFoundException( "File " + f + " does not exist on this volume." + ex);
+        }
+        
         if (path.exists()) {
           return new GlusterFileStatus(pathToFile(f), getDefaultBlockSize(), this);
         } else {
@@ -249,7 +357,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     }
     
     public String toString(){
-        return "Gluster Volume mounted at: " + root;
+        return "Gluster volume: " + this.NAME;
     }
 
 }
