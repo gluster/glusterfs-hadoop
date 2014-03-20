@@ -48,6 +48,7 @@ public class GlusterVolume extends RawLocalFileSystem{
      */
     public static final int OVERRIDE_WRITE_BUFFER_SIZE = 1024 * 4;
     public static final int OPTIMAL_WRITE_BUFFER_SIZE = 1024 * 128;
+    public static final int DEFAULT_BLOCK_SIZE = 64 * 1024 * 1024;
     
     public static final URI NAME = URI.create("glusterfs:///");
     
@@ -107,6 +108,18 @@ public class GlusterVolume extends RawLocalFileSystem{
                 	conf.setInt("io.file.buffer.size", OPTIMAL_WRITE_BUFFER_SIZE);
                 }
                 log.info("Write buffer size : " +conf.getInt("io.file.buffer.size",-1)) ;
+                
+                /**
+                 * Default block size
+                 */
+                
+                Long defaultBlockSize=conf.getLong("fs.local.block.size", -1);
+                
+                if(defaultBlockSize == -1) {
+                    conf.setInt("fs.local.block.size", DEFAULT_BLOCK_SIZE);
+                }
+                log.info("Default block size : " +conf.getInt("fs.local.block.size",-1)) ;
+                
             }
             catch (Exception e){
                 throw new RuntimeException(e);
