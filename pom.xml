@@ -9,7 +9,40 @@
   <version>2.1.6</version>
   <name>glusterfs-hadoop</name>
   <url>http://maven.apache.org</url>
+  
+   <!--  include the maven repo for the libgf-java-io native bindings -->
+  <repositories>  
+     <repository>  
+       <id>libgfapi-java-release-repo</id>  
+       <name>libgfapi-java Release Repository</name>  
+       <url>http://snuffy.s3-website-us-east-1.amazonaws.com/release</url>  
+       <releases>  
+         <enabled>true</enabled>  
+       </releases>  
+       <snapshots>  
+         <enabled>false</enabled>  
+       </snapshots>  
+     </repository>  
+     <repository>  
+       <id>libgfapi-java-s3-snapshot-repo</id>  
+       <name>libgfapi-java Snapshot Repository</name>  
+       <url>http://snuffy.s3-website-us-east-1.amazonaws.com/snapshot</url>  
+       <releases>  
+         <enabled>false</enabled>  
+       </releases>  
+       <snapshots>  
+         <enabled>true</enabled>  
+       </snapshots>  
+     </repository>  
+   </repositories>  
+   
+   
   <dependencies>
+    <dependency>
+	<groupId>glusterfs</groupId>
+		<artifactId>libgfapi-java-io</artifactId>
+		<version>1.0-SNAPSHOT</version>
+	</dependency>
     <dependency>
 	<groupId>junit</groupId>
 		<artifactId>junit</artifactId>
