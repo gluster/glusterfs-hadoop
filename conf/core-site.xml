@@ -21,15 +21,10 @@
   
   <property>
     <name>fs.default.name</name>
-    <value>glusterfs://ambari-3.abrv8.com:gv0<</value>
+    <value>glusterfs:///<</value>
   </property>
 
-  <!-- a super user that the hadoop daemons run under. required for multi-user secure clusters -->
-  <property>
-    <name>gluster.daemon.user</name>
-    <value>hadoop</value>
-  </property>
-  
+
   <!--  this is the default glusterfs hook with no additional integrity checking on files -->
   <property>
     <name>fs.AbstractFileSystem.glusterfs.impl</name>
@@ -44,20 +39,21 @@
   </property>
   -->
 
-  <property>
-    <name>fs.glusterfs.volname</name>
-    <value>HadoopVol</value>
-  </property>
+	<property>
+		<name>fs.glusterfs.volumes</name>
+		<value>gv0,gv1</value>
+	</property>
+	
+	<property>
+		<name>fs.glusterfs.volume.fuse.gv0</name>
+		<value>/mnt/gv0</value>
+	</property>
+	
+	<property>
+		<name>fs.glusterfs.volume.fuse.gv1</name>
+		<value>/mnt/gv1</value>
+	</property>
 
-  <property>
-    <name>fs.glusterfs.mount</name>
-    <value>/mnt/glusterfs</value>
-  </property>
-
-  <property>
-    <name>fs.glusterfs.server</name>
-    <value>RHS-1</value>
-  </property>
 
   
   
