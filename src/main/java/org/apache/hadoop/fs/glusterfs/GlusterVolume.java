@@ -31,6 +31,7 @@ import java.util.Hashtable;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
@@ -56,7 +57,7 @@ public class GlusterVolume extends RawLocalFileSystem{
  
     protected Hashtable<String,String> volumes=new Hashtable<String,String>();
     protected String default_volume = null;
-    private Path workingDir;
+    
     
     protected static GlusterFSXattr attr = null;
     
@@ -139,10 +140,14 @@ public class GlusterVolume extends RawLocalFileSystem{
                 //Working directory setup
                 
                 Path workingDirectory = getInitialWorkingDirectory();
-                if(sameVolume(workingDirectory) && !exists(workingDirectory) ){
+                if(!sameVolume(workingDirectory)){
+                    workingDirectory = new Path("/");
+                }else if( !exists(workingDirectory)){
                     mkdirs(workingDirectory);
                 }
                 setWorkingDirectory(workingDirectory);
+                
+                
                 log.info("Working directory is : "+ getWorkingDirectory());
 
                 /**
@@ -174,6 +179,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     }
     
     public File pathToFile(Path path) {
+      if(path==null) return null;
       checkPath(path);
       
       if (!path.isAbsolute()) {
@@ -192,30 +198,11 @@ public class GlusterVolume extends RawLocalFileSystem{
 
       return new File(this.volumes.get(volume) + "/" + path.toUri().getPath());
     }
-
+    
     protected Path getInitialWorkingDirectory() {
 		/* initial home directory is always on the default volume */
        return new Path("glusterfs:///user/" + System.getProperty("user.name"));
 	}
-    
-    private Path makeAbsolute(Path f) {
-        if (f.isAbsolute()) {
-          return f;
-        } else {
-          return new Path(workingDir, f);
-        }
-      }
-    
-    /**
-     * Set the working directory to the given directory.
-     */
-
-    public void setWorkingDirectory(Path newDir) {
-      workingDir = makeAbsolute(newDir);
-      // avoid checking the path as the working directory may not exist on this volume.
-      //checkPath(workingDir);
-      
-    }
     
 	public Path fileToPath(File path) {
 	    Enumeration<String> all = volumes.keys();
@@ -269,6 +256,15 @@ public class GlusterVolume extends RawLocalFileSystem{
 	      throw new IOException("Directory " + f.toString() + " is not empty");
 	    }
 	    return FileUtil.fullyDelete(f);
+	}
+	public boolean mkdirs(Path f) throws IOException {
+	      if(f == null) {
+	        throw new IllegalArgumentException("mkdirs path arg is null");
+	      }
+	      
+	      f = f.makeQualified(this);
+	      
+	      return super.mkdirs(f);
 	}
 	  
     public FileStatus[] listStatus(Path f) throws IOException {
