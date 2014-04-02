@@ -92,8 +92,8 @@ public class GlusterVolume extends RawLocalFileSystem{
     
     /* check if a path is on the same volume as this instance */
     public boolean sameVolume(Path p){
-        URI thisUri = canonicalizeUri(this.NAME);
-        URI thatUri = canonicalizeUri(p.toUri());
+        URI thisUri = this.NAME;
+        URI thatUri = p.toUri();
         if(!thatUri.getScheme().equalsIgnoreCase(thisUri.getScheme())) return false;
         if((thatUri.getAuthority()==null && thisUri.getAuthority()==null)) return true;
         return (thatUri.getAuthority()!=null && thatUri.getAuthority().equalsIgnoreCase(thisUri.getAuthority()));
@@ -179,7 +179,9 @@ public class GlusterVolume extends RawLocalFileSystem{
     }
     
     public File pathToFile(Path path) {
+      
       if(path==null) return null;
+      
       checkPath(path);
       
       if (!path.isAbsolute()) {
