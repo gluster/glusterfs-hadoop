@@ -5,7 +5,12 @@ public class HcfsTestConnectorFactory {
 
 	/* Loads an HCFS file system adapter via environment variable */
 	public static HcfsTestConnectorInterface getHcfsTestConnector() throws RuntimeException{
-		return getHcfsTestConnector(System.getProperty("HCFS_FILE_SYSTEM_CONNECTOR"));
+	    String testConnector = System.getProperty("HCFS_FILE_SYSTEM_CONNECTOR");
+	    if(testConnector==null || "".equals(testConnector)){
+	        testConnector = HcfsTestConnector.class.getCanonicalName();	    
+	     }
+	    
+		return getHcfsTestConnector(testConnector);
 	}
 	
 	public static HcfsTestConnectorInterface getHcfsTestConnector(String hcfsName) throws RuntimeException{

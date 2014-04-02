@@ -17,8 +17,10 @@ public class GlusterVol extends RawLocalFsG{
    
     protected static final Logger log = LoggerFactory.getLogger(GlusterFileSystemCRC.class);
     
+    public static final URI DEFAULT_URI=URI.create("glusterfs:///");
+    
     GlusterVol(final Configuration conf) throws IOException, URISyntaxException {
-        this(GlusterVolume.NAME, conf);
+        this(DEFAULT_URI, conf);
         
     }
       

@@ -1,9 +1,11 @@
 package org.apache.hadoop.fs.test.connector;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+
 
 /*
  * Generic HCFS file system test connector.
@@ -11,23 +13,17 @@ import org.apache.hadoop.fs.FileSystem;
  * as an environment variable.
  * 
  */
-public class HcfsTestConnector implements HcfsTestConnectorInterface{
-	 
-	public Configuration createConfiguration(){
-		return new Configuration();
-	}
-	   
-    public FileSystem create(String HcfsClassName) throws IOException{
-    	try {
-    		FileSystem hcfs = (FileSystem)Class.forName(HcfsClassName).newInstance();
-			hcfs.initialize(hcfs.getUri(), createConfiguration());
-			return hcfs;
-		} catch (Exception e) {
-			throw new RuntimeException("Cannont instatiate HCFS. Error:\n " + e);
-		} 
-	}
+public class HcfsTestConnector implements HcfsTestConnectorInterface {
 
-	public FileSystem create() throws IOException {
-		return create(System.getProperty("HCFS_CLASSNAME"));
-	}
+    public Configuration createConfiguration(){
+        Configuration c = new Configuration();
+        InputStream config = HcfsTestConnector.class.getClassLoader().getResourceAsStream("core-site.xml");
+        c.addResource(config);
+
+        return c;
+    }
+
+    public FileSystem create() throws IOException{
+        return FileSystem.get(createConfiguration());
+    }
 }
