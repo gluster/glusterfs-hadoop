@@ -21,7 +21,7 @@
   
   <property>
     <name>fs.default.name</name>
-    <value>glusterfs:///<</value>
+    <value>glusterfs:///</value>
   </property>
 
 
