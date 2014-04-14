@@ -338,9 +338,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     
     public void setPermission(Path p, FsPermission permission)
             throws IOException {
-        /**BZ1065438: apply uMask for permission **/
-        super.setPermission(p,permission.applyUMask(FsPermission.getUMask(getConf())));
-
+    	super.setPermission(p,permission);
     }
 
     public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
