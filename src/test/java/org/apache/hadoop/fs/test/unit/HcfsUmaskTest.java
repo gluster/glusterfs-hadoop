@@ -70,7 +70,7 @@ public class HcfsUmaskTest{
     public void testMkdirsWithUmask() throws Exception {
         Configuration conf = fs.getConf();
         String oldUmask = conf.get("fs.permissions.umask-mode");
-        Path dir = new Path("/dirUmask022");
+        Path dir = new Path("dirUmask022");
         conf.set("fs.permissions.umask-mode", "022");
         assertTrue(fs.mkdirs(dir));
         conf.set("fs.permissions.umask-mode", oldUmask);
