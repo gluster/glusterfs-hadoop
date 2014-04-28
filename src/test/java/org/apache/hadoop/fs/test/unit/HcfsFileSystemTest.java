@@ -45,6 +45,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -131,29 +132,6 @@ public class HcfsFileSystemTest{
         assertFalse(fs.exists(new Path("test1")));
     }
 
-    @Test
-    public void testGroupOwnership() throws Exception{
-        Path myFile=new Path("filePerm.txt");
-        //Create a file 
-        fs.create(myFile);
-        
-        //Set the initial owner
-        fs.setOwner(myFile, "daemon", "root");
-        String oldOwner = fs.getFileStatus(myFile).getOwner(); 
-        String oldGroup = fs.getFileStatus(myFile).getGroup();
-        Assert.assertEquals("daemon",oldOwner);
-        Assert.assertEquals("root",oldGroup);
-        
-        //Now, change it to "root" "wheel" 
-        fs.setOwner(myFile, "root", "wheel");
-        String newOwner = fs.getFileStatus(myFile).getOwner(); 
-        String newGroup = fs.getFileStatus(myFile).getGroup();
-        Assert.assertEquals("root",newOwner);
-        Assert.assertEquals("wheel",newGroup);
-        
-        fs.delete(myFile,true);
-    }
-    
     @org.junit.Test
     public void testPermissions() throws Exception{
 
