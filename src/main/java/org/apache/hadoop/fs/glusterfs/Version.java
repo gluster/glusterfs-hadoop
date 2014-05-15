@@ -25,7 +25,11 @@ public class Version extends Properties{
         }
     }
     public String getTag(){
-        return this.getProperty("git.commit.id.describe").split("-")[0];
+        String commit = this.getProperty("git.commit.id.describe"); 
+        String tag = commit != null ? 
+                commit.split("-")[0]:
+               "no version info available. check log warnings.";
+        return commit.split("-")[0];
     }
     
     /**
