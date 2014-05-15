@@ -4,19 +4,24 @@ import java.io.IOException;
 
 import java.util.Properties;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Versioning stuff for the shim.  This class is not tested since there is no 
  * deterministic behaviour (i.e. it might not work if not building from binary), 
  * and the effects are pure side effects.
  */
 public class Version extends Properties{
+    static final Logger LOG = LoggerFactory.getLogger(Version.class);
     public Version() {
         super();
         try{
             load(this.getClass().getClassLoader().getResourceAsStream("git.properties"));
         }
         catch(Throwable t){
-            throw new RuntimeException("Couldn't find git properties for version info " + t.getMessage());
+            LOG.warn("Couldn't find GIT properties for version info " + 
+            t.getMessage()+".  This jar may have been built OUTSIDE a GIT repo.");
         }
     }
     public String getTag(){
