@@ -36,6 +36,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.FilterFileSystem;
+import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +91,11 @@ public class GlusterFileSystem extends FilterFileSystem{
         FileSystem srcFs=src.getFileSystem(getConf());
         FileSystem dstFs=new Path("file:/"+dst.toString()).getFileSystem(getConf());
         FileUtil.copy(srcFs, src, dstFs, dst, delSrc, getConf());
+    }
+
+    @Override
+    public boolean mkdirs(Path f) throws IOException {
+        return mkdirs(f, FsPermission.getDirDefault().applyUMask(FsPermission.getUMask(getConf())));
     }
 
     public String toString(){
