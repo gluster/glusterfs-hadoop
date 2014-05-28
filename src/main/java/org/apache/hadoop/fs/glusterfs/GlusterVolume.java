@@ -28,6 +28,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -57,7 +58,7 @@ public class GlusterVolume extends RawLocalFileSystem{
  
     protected Hashtable<String,String> volumes=new Hashtable<String,String>();
     protected String default_volume = null;
-    
+    protected boolean sortDirectoryListing = false;
     
     protected static GlusterFSXattr attr = null;
     
@@ -107,7 +108,14 @@ public class GlusterVolume extends RawLocalFileSystem{
         if(conf!=null){
          
             try{
-                String[] v=conf.get("fs.glusterfs.volumes", "").split(",");
+                String r=conf.get("fs.glusterfs.volumes", "");
+                
+                if("".equals(r)){
+                    log.error("fs.glusterfs.volumes not defined.");
+                    throw new RuntimeException("Error loading gluster configuration.. fs.glusterfs.volumes not defined.");
+                }
+                String[] v=r.split(",");
+                
                 default_volume = v[0];
                 for(int i=0;i<v.length;i++){
                     String vol = conf.get("fs.glusterfs.volume.fuse." + v[i] , null);
@@ -169,6 +177,10 @@ public class GlusterVolume extends RawLocalFileSystem{
                     conf.setInt("fs.local.block.size", DEFAULT_BLOCK_SIZE);
                 }
                 log.info("Default block size : " +conf.getInt("fs.local.block.size",-1)) ;
+                
+                sortDirectoryListing=conf.getBoolean("fs.glusterfs.sort.directory.listing",false);
+                
+                log.info("Directory list order : " + (sortDirectoryListing?"sorted":"fs ordering")) ;
                 
             }
             catch (Exception e){
@@ -269,10 +281,11 @@ public class GlusterVolume extends RawLocalFileSystem{
 	      return super.mkdirs(f);
 	}
 	  
-    public FileStatus[] listStatus(Path f) throws IOException {
+	public FileStatus[] listStatus(Path f) throws IOException {
         File localf = pathToFile(f);
-        FileStatus[] results;
-
+        Vector<FileStatus> results = new Vector<FileStatus>();
+        
+   
         if (!localf.exists()) {
           throw new FileNotFoundException("File " + f + " does not exist");
         }
@@ -285,21 +298,34 @@ public class GlusterVolume extends RawLocalFileSystem{
         if (names == null) {
           return null;
         }
-        results = new FileStatus[names.length];
-        int j = 0;
+        
         for (int i = 0; i < names.length; i++) {
           try {
-            results[j] = getFileStatus(fileToPath(names[i]));
-            j++;
+            FileStatus listing = getFileStatus(fileToPath(names[i]));
+            if(sortDirectoryListing){
+                int j;
+                for(j=0;j<results.size();j++){
+                    
+                        if(results.get(j).compareTo(listing)>0){
+                            results.insertElementAt(listing,j);
+                            break;
+                        }
+                
+                }
+                if(results.size()==j)
+                    results.add(listing);
+            }else{
+                results.add(listing);
+            }
+            
           } catch (FileNotFoundException e) {
             // ignore the files not found since the dir list may have have changed
             // since the names[] list was generated.
           }
         }
-        if (j == names.length) {
-          return results;
-        }
-        return Arrays.copyOf(results, j);
+
+        return results.toArray(new FileStatus[results.size()]);
+        
     }
     
     public FileStatus getFileStatus(Path f) throws IOException {
