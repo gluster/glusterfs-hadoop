@@ -51,22 +51,26 @@ import org.apache.log4j.spi.LoggerFactory;
 import org.slf4j.Logger;
 public class GlusterContainerExecutor extends LinuxContainerExecutor {
   
-   static Logger log = org.slf4j.LoggerFactory.getLogger(GlusterContainerExecutor.class);
-   /**
+   private static final Log LOG = LogFactory
+      .getLog(GlusterContainerExecutor.class);  
+ 
+  /**
    * We override the YARN-1235 patch here.
    * @param user
    * @return
    */
   @Override
   String getRunAsUser(String user) {
-   log.info("Container EXEC overrid: returning user " + user);
+   LOG.info("Container EXEC overrid: returning user " + user);
       //return UserGroupInformation.isSecurityEnabled() ? user : nonsecureLocalUser;
     return user;
   }
-@Override
-public void deleteAsUser(String arg0,Path arg1,Path...arg2){
-    log.info("DELETE AS USER " + arg0 + " " + arg1 +" " + arg2);
-    super.deleteAsUser(arg0, arg1, arg2);
-}
+
+  @Override
+  public void deleteAsUser(String user, Path subDir, Path... basedirs) {
+    LOG.info("DELETE AS USER " + user + " " + subDir +" " + basedirs);
+    super.deleteAsUser(user, subDir, basedirs);
+  }
+
 }
 
