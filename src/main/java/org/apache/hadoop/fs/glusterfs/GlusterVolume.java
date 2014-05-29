@@ -21,6 +21,7 @@
 
 package org.apache.hadoop.fs.glusterfs;
 
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -208,7 +209,8 @@ public class GlusterVolume extends RawLocalFileSystem{
     
 	public Path fileToPath(File path) {
 	    Enumeration<String> all = volumes.keys();
-	    String rawPath = path.toURI().getRawPath();
+	    String rawPath = path.getAbsolutePath();
+	    
 	    String volume = null;
 	    String root = null;
 	    
@@ -223,8 +225,7 @@ public class GlusterVolume extends RawLocalFileSystem{
 	    
 	    if(default_volume.equalsIgnoreCase(volume))
 	        volume = "";
-	    
-        return new Path("glusterfs://" + volume + "/" + rawPath.substring(root.length()));
+	    return new Path("glusterfs://" + volume + "/" + rawPath.substring(root.length()));
      }
 
      public boolean rename(Path src, Path dst) throws IOException {
@@ -292,8 +293,7 @@ public class GlusterVolume extends RawLocalFileSystem{
             results[j] = getFileStatus(fileToPath(names[i]));
             j++;
           } catch (FileNotFoundException e) {
-            // ignore the files not found since the dir list may have have changed
-            // since the names[] list was generated.
+        	  log.info("ignoring invisible path :  " + names[i]);
           }
         }
         if (j == names.length) {
