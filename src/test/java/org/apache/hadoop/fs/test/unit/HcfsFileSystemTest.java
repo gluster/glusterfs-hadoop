@@ -31,12 +31,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Iterator;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.apache.hadoop.fs.test.connector.HcfsTestConnectorFactory;
@@ -45,7 +49,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -55,6 +58,26 @@ import org.junit.Test;
 public class HcfsFileSystemTest{
     
     static FileSystem fs ; 
+    
+
+    /**
+     * See MAPREDUCE-5902 for context on why this test is critical
+     * for ecosystem interoperability.
+     */
+    @org.junit.Test
+    public void testEncodedPaths() throws Exception {
+    	//FileSystem fs2 = FileSystem.getLocal(new Configuration());
+    	FileSystem fs2 = fs;
+    	Path encodedFiles=new Path("/tmp/encodedTest"+System.currentTimeMillis());
+    	fs2.mkdirs(encodedFiles);
+    	fs2.create(new Path(encodedFiles,"a"));
+    	fs2.create(new Path(encodedFiles,"a%2"));
+    	fs2.create(new Path(encodedFiles,"a%2a"));
+    	fs2.create(new Path(encodedFiles,"a%3a"));
+    	fs2.create(new Path(encodedFiles,"a%4a"));
+    	Assert.assertEquals(5, fs2.listStatus(encodedFiles).length);
+    	fs2.delete(encodedFiles);
+    }    
     
     @BeforeClass
     public static void setup() throws Exception {
