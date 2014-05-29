@@ -37,6 +37,7 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RawLocalFileSystem;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.mortbay.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -292,7 +293,7 @@ public class GlusterVolume extends RawLocalFileSystem{
             results[j] = getFileStatus(fileToPath(names[i]));
             j++;
           } catch (FileNotFoundException e) {
-        	  System.err.println("ignoring :  " + names[i]);
+        	  log.info("ignoring invisible path :  " + names[i]);
           }
         }
         if (j == names.length) {
@@ -344,15 +345,12 @@ public class GlusterVolume extends RawLocalFileSystem{
         File f=pathToFile(file.getPath());
         BlockLocation[] result=null;
 
-        try{
-        	result=attr.getPathInfo(f.getPath(), start, len);
+        result=attr.getPathInfo(f.getPath(), start, len);
+        if(result==null){
+            log.info("Problem getting destination host for file "+f.getPath());
+            return null;
         }
-        catch(Throwable t){
-	        if(result==null){
-	            log.info("Problem getting destination host for file "+f.getPath());
-	            return null;
-	        }
-        }
+
         return result;
     }
     
