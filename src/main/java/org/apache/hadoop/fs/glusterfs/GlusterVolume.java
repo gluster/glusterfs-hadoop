@@ -125,6 +125,7 @@ public class GlusterVolume extends RawLocalFileSystem{
                 }else{
                 	attr = new GlusterFSXattr();
                 }
+
                 String jtSysDir = conf.get("mapreduce.jobtracker.system.dir", null);
                 Path mapredSysDirectory = null;
                 
@@ -133,7 +134,7 @@ public class GlusterVolume extends RawLocalFileSystem{
                 else{
                     mapredSysDirectory = new Path(conf.get("mapred.system.dir", "glusterfs:///mapred/system"));
                 }
-                
+                log.info("Attempting to setup mapred sys directory: " + mapredSysDirectory);
                 if(sameVolume(mapredSysDirectory) && !exists(mapredSysDirectory) ){
                     mkdirs(mapredSysDirectory);
                 }
