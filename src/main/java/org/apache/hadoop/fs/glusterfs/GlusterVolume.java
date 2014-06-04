@@ -135,7 +135,9 @@ public class GlusterVolume extends RawLocalFileSystem{
                 }
                 
                 if(sameVolume(mapredSysDirectory) && !exists(mapredSysDirectory) ){
-                    mkdirs(mapredSysDirectory);
+                    //mkdirs(mapredSysDirectory);
+                   log.error("Exception loading glusterfs plugin.  mapred.system.dir defined as: " + mapredSysDirectory + " but does not exit.");
+                   throw new RuntimeException("mapred.system.dir: " + mapredSysDirectory + " does not exist.");
                 }
                 //Working directory setup
                 
