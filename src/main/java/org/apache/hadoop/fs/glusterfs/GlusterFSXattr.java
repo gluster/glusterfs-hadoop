@@ -22,6 +22,8 @@ package org.apache.hadoop.fs.glusterfs;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -41,7 +43,7 @@ public class GlusterFSXattr{
         GET_HINTS, GET_REPLICATION, GET_BLOCK_SIZE, CHECK_FOR_QUICK_IO
     }
 
-    private static String hostname;
+   private static String hostname;
 
    private String getFattrCmdBase = null;
    
@@ -49,6 +51,40 @@ public class GlusterFSXattr{
        getFattrCmdBase=getAttr;
    }
   
+   public String getRack(String host){
+       // returns the rack associated with a host.
+       
+       return "default-rack";
+   }
+   
+   private static String[] hostsToIp(String[] hosts){
+       String[] ips = new String[hosts.length];
+       for(int i=0;i<hosts.length;i++){
+          try {
+            ips[i] = InetAddress.getByName(hosts[i]).getHostAddress();
+        } catch (UnknownHostException e) {
+           System.out.println("error resolving " + hosts[i]);
+            e.printStackTrace();
+        } 
+       
+       }
+       return ips;
+   }
+   
+   private  String[] hostsToTopology(String[] hosts){
+       String[] ips = new String[hosts.length];
+       for(int i=0;i<hosts.length;i++){
+          try {
+            ips[i] = "/" + getRack(hosts[i]) + "/" + InetAddress.getByName(hosts[i]).getHostAddress();
+        } catch (UnknownHostException e) {
+           System.out.println("error resolving " + hosts[i]);
+            e.printStackTrace();
+        } 
+       
+       }
+       return ips;
+   }
+   
    public GlusterFSXattr(){
 	   getFattrCmdBase = "sudo getfattr -m . -n trusted.glusterfs.pathinfo";
    }
@@ -268,7 +304,8 @@ public class GlusterFSXattr{
 
                 if(hnts==null){
                     result=new BlockLocation[1];
-                    result[0]=new BlockLocation(null, new String[]{brick2host(brick)}, start, len);
+                    String[] bl = new String[]{brick2host(brick)};
+                    result[0]=new BlockLocation(hostsToIp(bl), bl,hostsToTopology(bl), start, len);
                 }else
                     hnts.put(0, new GlusterFSBrickClass(brick, start, len, false, -1, -1, -1));
                 break;
@@ -301,7 +338,7 @@ public class GlusterFSXattr{
                 }
 
                 if(hnts==null)
-                    result[0]=new BlockLocation(null, blks, start, len);
+                    result[0]=new BlockLocation(hostsToIp(blks), blks, hostsToTopology(blks), start, len);
 
                 break;
 
@@ -378,7 +415,7 @@ public class GlusterFSXattr{
 
                 if(hnts==null)
                     for(int k=0;k<nrAllocs;k++)
-                        result[k]=new BlockLocation(null, repl[k].getReplHosts(), repl[k].getStartLen(), repl[k].getOffLen());
+                        result[k]=new BlockLocation(hostsToIp(repl[k].getReplHosts()), repl[k].getReplHosts(), hostsToTopology(repl[k].getReplHosts()), repl[k].getStartLen(), repl[k].getOffLen());
 
                 break;
 
@@ -415,9 +452,10 @@ public class GlusterFSXattr{
                         done=true;
                     }
 
-                    if(hnts==null)
-                        result[allocCtr]=new BlockLocation(null, new String[]{brick2host(brick)}, stripeStart, (stripeEnd-stripeStart));
-                    else if(allocCtr<=stripedBricks.size()){
+                    if(hnts==null){
+                        String host = brick2host(brick);
+                        result[allocCtr]=new BlockLocation(hostsToIp(new String[]{host}), new String[]{host}, hostsToTopology(new String[]{host}), stripeStart, (stripeEnd-stripeStart));
+                    }else if(allocCtr<=stripedBricks.size()){
                         hnts.put(allocCtr, new GlusterFSBrickClass(brick, stripeStart, (stripeEnd-stripeStart), true, stripeSize, stripedBricks.size(), -1));
                     }else
                         break;
