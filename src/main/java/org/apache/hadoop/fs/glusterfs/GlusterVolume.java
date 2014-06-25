@@ -198,8 +198,12 @@ public class GlusterVolume extends RawLocalFileSystem{
       }else if(volume==null){
           volume = default_volume;
       }
-
-      return new File(this.volumes.get(volume) + "/" + path.toUri().getPath());
+      String volPath = this.volumes.get(volume);
+      if(volPath==null){
+          throw new RuntimeException("Error undefined volume:" + volume + " in path: " + path);
+      }
+              
+      return new File(volPath + "/" + path.toUri().getPath());
     }
     
     protected Path getInitialWorkingDirectory() {
@@ -221,6 +225,10 @@ public class GlusterVolume extends RawLocalFileSystem{
 	            volume = nextVolume;
 	            root = nextPath;
 	        }
+	    }
+	  
+	    if(volume==null){
+	        throw new RuntimeException("No volume matching path: " + path);
 	    }
 	    
 	    if(default_volume.equalsIgnoreCase(volume))
