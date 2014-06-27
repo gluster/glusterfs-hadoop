@@ -72,6 +72,7 @@ public class GlusterFileSystem extends FilterFileSystem{
 
     public void setConf(Configuration conf){
         log.info("Configuring GlusterFS");
+        if(conf!=null) conf.addResource("glusterfs-site.xml");
         super.setConf(conf);
     }
 

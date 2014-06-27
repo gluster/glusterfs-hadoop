@@ -21,6 +21,7 @@
 
 package org.apache.hadoop.fs.glusterfs;
 
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -197,8 +198,12 @@ public class GlusterVolume extends RawLocalFileSystem{
       }else if(volume==null){
           volume = default_volume;
       }
-
-      return new File(this.volumes.get(volume) + "/" + path.toUri().getPath());
+      String volPath = this.volumes.get(volume);
+      if(volPath==null){
+          throw new RuntimeException("Error undefined volume:" + volume + " in path: " + path);
+      }
+              
+      return new File(volPath + "/" + path.toUri().getPath());
     }
     
     protected Path getInitialWorkingDirectory() {
@@ -208,7 +213,8 @@ public class GlusterVolume extends RawLocalFileSystem{
     
 	public Path fileToPath(File path) {
 	    Enumeration<String> all = volumes.keys();
-	    String rawPath = path.toURI().getRawPath();
+	    String rawPath = path.getAbsolutePath();
+	    
 	    String volume = null;
 	    String root = null;
 	    
@@ -220,11 +226,14 @@ public class GlusterVolume extends RawLocalFileSystem{
 	            root = nextPath;
 	        }
 	    }
+	  
+	    if(volume==null){
+	        throw new RuntimeException("No volume matching path: " + path);
+	    }
 	    
 	    if(default_volume.equalsIgnoreCase(volume))
 	        volume = "";
-	    
-        return new Path("glusterfs://" + volume + "/" + rawPath.substring(root.length()));
+	    return new Path("glusterfs://" + volume + "/" + rawPath.substring(root.length()));
      }
 
      public boolean rename(Path src, Path dst) throws IOException {
@@ -280,6 +289,10 @@ public class GlusterVolume extends RawLocalFileSystem{
           return new FileStatus[] {
             new GlusterFileStatus(localf, getDefaultBlockSize(), this) };
         }
+        
+        if(localf.isDirectory() && !localf.canRead()){
+            throw new IOException("Access denied : " + localf.getPath());
+        }
 
         File[] names = localf.listFiles();
         if (names == null) {
@@ -292,8 +305,7 @@ public class GlusterVolume extends RawLocalFileSystem{
             results[j] = getFileStatus(fileToPath(names[i]));
             j++;
           } catch (FileNotFoundException e) {
-            // ignore the files not found since the dir list may have have changed
-            // since the names[] list was generated.
+        	  log.info("ignoring invisible path :  " + names[i]);
           }
         }
         if (j == names.length) {
