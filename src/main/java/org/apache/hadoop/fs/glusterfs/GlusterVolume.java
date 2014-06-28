@@ -291,7 +291,7 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         
         if(localf.isDirectory() && !localf.canRead()){
-            throw new IOException("Access denied : " + localf.getPath());
+            throw new IOException("Access denied : " + f.toString());
         }
 
         File[] names = localf.listFiles();
