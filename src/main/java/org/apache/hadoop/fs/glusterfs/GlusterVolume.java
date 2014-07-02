@@ -136,7 +136,8 @@ public class GlusterVolume extends RawLocalFileSystem{
                 }
                 
                 if(sameVolume(mapredSysDirectory) && !exists(mapredSysDirectory) ){
-                    mkdirs(mapredSysDirectory);
+                 //   mkdirs(mapredSysDirectory);
+                    throw new RuntimeException("Error (mapred.system.dir/mapreduce.jobtracker.system.dir) does not exist: " + mapredSysDirectory);
                 }
                 //Working directory setup
                 
@@ -144,7 +145,8 @@ public class GlusterVolume extends RawLocalFileSystem{
                 if(!sameVolume(workingDirectory)){
                     workingDirectory = new Path("/");
                 }else if( !exists(workingDirectory)){
-                    mkdirs(workingDirectory);
+                   // mkdirs(workingDirectory);
+                    throw new RuntimeException("Error working directory does not exist: " + workingDirectory);
                 }
                 setWorkingDirectory(workingDirectory);
                 
