@@ -21,15 +21,16 @@ public class Version extends Properties{
         }
         catch(Throwable t){
             LOG.warn("Couldn't find GIT properties for version info " + 
-            t.getMessage()+".  This jar may have been built OUTSIDE a GIT repo.");
+            t +".  This jar may have been built OUTSIDE a GIT repo.");
         }
     }
     public String getTag(){
         String commit = this.getProperty("git.commit.id.describe"); 
-        String tag = commit != null ? 
+        final String tag = commit != null ? 
                 commit.split("-")[0]:
                "no version info available. check log warnings.";
-        return commit.split("-")[0];
+        
+	return tag;
     }
     
     /**
