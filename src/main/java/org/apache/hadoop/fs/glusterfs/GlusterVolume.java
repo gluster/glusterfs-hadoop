@@ -136,7 +136,8 @@ public class GlusterVolume extends RawLocalFileSystem{
                 }
                 
                 if(sameVolume(mapredSysDirectory) && !exists(mapredSysDirectory) ){
-                    mkdirs(mapredSysDirectory);
+                 //   mkdirs(mapredSysDirectory);
+                    log.warn("mapred.system.dir/mapreduce.jobtracker.system.dir does not exist: " + mapredSysDirectory);
                 }
                 //Working directory setup
                 
@@ -144,8 +145,10 @@ public class GlusterVolume extends RawLocalFileSystem{
                 if(!sameVolume(workingDirectory)){
                     workingDirectory = new Path("/");
                 }else if( !exists(workingDirectory)){
-                    mkdirs(workingDirectory);
+                   // mkdirs(workingDirectory);
+                    log.warn("working directory does not exist: " + workingDirectory);
                 }
+                
                 setWorkingDirectory(workingDirectory);
                 
                 
@@ -291,7 +294,7 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         
         if(localf.isDirectory() && !localf.canRead()){
-            throw new IOException("Access denied : " + localf.getPath());
+            throw new IOException("Access denied : " + f.toString());
         }
 
         File[] names = localf.listFiles();
