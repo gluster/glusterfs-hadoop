@@ -95,10 +95,9 @@ public class GlusterVolume extends RawLocalFileSystem{
     public boolean sameVolume(Path p){
         URI thisUri = this.NAME;
         URI thatUri = p.toUri();
-        if(!thatUri.getScheme().equalsIgnoreCase(thisUri.getScheme())) return false;
-        if((thatUri.getAuthority()==null && thisUri.getAuthority()==null)) return true;
+        if(!thisUri.getScheme().equalsIgnoreCase(thatUri.getScheme())) return false;
+        if((thisUri.getAuthority()==null && thatUri.getAuthority()==null)) return true;
         return (thatUri.getAuthority()!=null && thatUri.getAuthority().equalsIgnoreCase(thisUri.getAuthority()));
-        
     }
     
     public void setConf(Configuration conf){
