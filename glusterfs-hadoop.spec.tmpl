@@ -5,9 +5,10 @@ Release: $release%{?dist}
 #if $epoch
 Epoch: $epoch
 #end if
-License: Apache
-Summary: GlusterFS Hadoop Plugin
-Group: Application/File
+License: Apache License
+URL: https://forge.gluster.org/hadoop/glusterfs-hadoop
+Summary: GlusterFS Hadoop Plug-in
+Group: Applications/File
 
 #for $i, $artifact in $enumerate($all_artifacts)
 Source$i: $artifact
@@ -21,10 +22,11 @@ BuildArch: noarch
 %global hadoop_libdir %{_prefix}/lib/hadoop/lib
 
 %description
-The Gluster Filesystem Hadoop implementation for both Hadoop 1.x and 2.x.  This
-Java plugin for Hadoop allows MapReduce and YARN to run on top of Gluster, by providing the
-GlusterFileSystem (1.x) and GlusterFs (2.x) implementations.  These should be referenced
-in the hadoop configuration files and loaded at runtime as the FileSystem implementation. 
+The Gluster File system Hadoop implementation for both Hadoop 1.x and 2.x.
+This Java plug-in for Hadoop allows MapReduce and YARN to run on top of
+Gluster, by providing the GlusterFileSystem (1.x) and GlusterFs (2.x)
+implementations.  These should be referenced in the hadoop configuration
+files and loaded at run time as the FileSystem implementation.
 
 %prep
 
@@ -57,9 +59,12 @@ rm -rf %{buildroot}
 %{hadoop_libdir}/$artifact
   #end if
 #end for
-%{_sysconfdir}/sudoers.d/20_glusterfs_hadoop_sudoers
+%config %{_sysconfdir}/sudoers.d/20_glusterfs_hadoop_sudoers
 
 %changelog
+* Thus Oct 09 2014 Shubhendu Tripathi <shtripat@redhat.com> 2.1.6-1
+- bz#1065417 fixed rpmlint errors and warnings
+
 * Wed Feb 06 2014 Jeff Vance <jvance@redhat.com> 2.1.6
 - fix name from "gluster" to "glusterfs-hadoop"
 - minor README updates
@@ -71,7 +76,7 @@ rm -rf %{buildroot}
 - rename to rhs-hadoop for release
 
 * Fri Nov 22 2013 Jay Vyas <jvyas@rehdat.com> 2.1.4
-- Initial import into the glusterfs-hadoop plugin as part of our deployment. 
+- Initial import into the glusterfs-hadoop plug-in as part of our deployment. 
 
 * Fri May 18 2012 Anthony Towns <atowns@redhat.com> - 0.20.2-0
 - Initial build
