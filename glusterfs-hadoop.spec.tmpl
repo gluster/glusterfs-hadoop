@@ -22,11 +22,7 @@ BuildArch: noarch
 %global hadoop_libdir %{_prefix}/lib/hadoop/lib
 
 %description
-The Gluster File system Hadoop implementation for both Hadoop 1.x and 2.x.
-This Java plug-in for Hadoop allows MapReduce and YARN to run on top of
-Gluster, by providing the GlusterFileSystem (1.x) and GlusterFs (2.x)
-implementations.  These should be referenced in the hadoop configuration
-files and loaded at run time as the FileSystem implementation.
+Hadoop FileSystem support for Red Hat Storage
 
 %prep
 
@@ -62,6 +58,9 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/sudoers.d/20_glusterfs_hadoop_sudoers
 
 %changelog
+* Thus Oct 09 2014 Shubhendu Tripathi <shtripat@redhat.com> 2.1.6-2
+- bz#1122909 corrected the description
+
 * Thus Oct 09 2014 Shubhendu Tripathi <shtripat@redhat.com> 2.1.6-1
 - bz#1065417 fixed rpmlint errors and warnings
 
