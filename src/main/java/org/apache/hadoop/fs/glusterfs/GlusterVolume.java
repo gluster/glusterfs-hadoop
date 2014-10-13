@@ -113,8 +113,10 @@ public class GlusterVolume extends RawLocalFileSystem{
                     String vol = conf.get("fs.glusterfs.volume.fuse." + v[i] , null);
                     
                     if(vol==null){
-                        log.error("Could not find property: fs.glusterfs.fuse." + v[i]);
-                        throw new RuntimeException("Could not find mount point for volume: "+ v[i]);
+                        log.error("Invalid volume name: " + v[i]
+                        		+ ", No such property: fs.glusterfs.fuse." + v[i]);
+                        throw new RuntimeException("Invalid volume name: " + v[i]
+                        		+ ", No mount point available for the volume.");
                     }
                     volumes.put(v[i],vol);
                     log.info("Gluster volume: " + v[i] + " at : " + volumes.get(v[i]));
