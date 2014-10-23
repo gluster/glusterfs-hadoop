@@ -22,7 +22,7 @@ BuildArch: noarch
 %global hadoop_libdir %{_prefix}/lib/hadoop/lib
 
 %description
-Hadoop FileSystem support for Red Hat Storage
+Hadoop FileSystem support for GlusterFS
 
 %prep
 
@@ -58,6 +58,10 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/sudoers.d/20_glusterfs_hadoop_sudoers
 
 %changelog
+* Thus Oct 13 2014 Shubhendu Tripathi <shtripat@redhat.com> 2.1.6-3
+- bz#1122909 Corrected the product name as GlusterFS instead of
+- Red Hat Storage in description
+
 * Thus Oct 09 2014 Shubhendu Tripathi <shtripat@redhat.com> 2.1.6-2
 - bz#1122909 corrected the description
 
