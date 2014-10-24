@@ -69,10 +69,15 @@ public class GlusterVolume extends RawLocalFileSystem{
         this.setConf(conf);
     }
     
+    public URI getUriOrCreate(URI u) { 
+       if(NAME==null) 
+	       return URI.create("glusterfs:///");
+       return NAME;       
+    }
+
     public URI getUri() { 
-      if(NAME==null) return URI.create("glusterfs:///");
-      return NAME;       
-   }
+       return getUriOrCreate(NAME);
+    }
     
     public void initialize(URI uri, Configuration conf) throws IOException {
         /* we only really care about the URI up to the path, so strip other things off */
