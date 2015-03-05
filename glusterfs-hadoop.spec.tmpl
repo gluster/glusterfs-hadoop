@@ -24,6 +24,12 @@ BuildArch: noarch
 %description
 Hadoop FileSystem support for GlusterFS
 
+%package javadoc
+Summary: API documentation for %{name}
+
+%description javadoc
+%{summary}
+
 %prep
 
 %build
@@ -47,6 +53,9 @@ install -m 644 %{SOURCE100} %{buildroot}%{_sysconfdir}/sudoers.d/
 %clean
 rm -rf %{buildroot}
 
+%files javadoc -f .mfiles-javadoc
+%doc COPYING
+
 %files
 %defattr(-,root,root,-)
 #for $i, $artifact in $enumerate($all_artifacts)
@@ -58,6 +67,9 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/sudoers.d/20_glusterfs_hadoop_sudoers
 
 %changelog
+* Thu Mar 05 2015 Shubhendu Tripathi <shtripat@redhat.com> 2.1.6-4
+- bz#1094881 Modified to generate javadoc
+
 * Thu Oct 13 2014 Shubhendu Tripathi <shtripat@redhat.com> 2.1.6-3
 - bz#1122909 Corrected the product name as GlusterFS instead of
 - Red Hat Storage in description
