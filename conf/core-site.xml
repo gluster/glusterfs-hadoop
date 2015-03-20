@@ -44,9 +44,9 @@
 		<value>gv0,gv1</value>
 	</property>
 	
-	<property>
+    <property>
 		<name>fs.glusterfs.volume.fuse.gv0</name>
-		<value>/mnt/gv0</value>
+		<value>/mnt/glusterfs/glustertest</value>
 	</property>
 	
 	<property>
