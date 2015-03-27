@@ -355,22 +355,14 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         
         if (path.exists()) {
-          return new GlusterFileStatus(pathToFile(f), getBlockSize(f), this);
+          return new GlusterFileStatus(pathToFile(f), this);
         } else {
           throw new FileNotFoundException( "File " + f + " does not exist.");
         }
       }
     
     public long getBlockSize(Path path) throws IOException{
-        long blkSz;
-        File f=pathToFile(path);
-        String blockSize = GlusterFSXattr.shellToString("stat --format=%o " + f.getAbsolutePath().toString());
-        long blocksize =  Long.parseLong(blockSize);
-        
-        if(blocksize < 1){
-        	return getDefaultBlockSize();
-        }
-        return blocksize ; 
+    	return getLength(path);
     }
     
     public void setOwner(Path p, String username, String groupname)
@@ -386,14 +378,11 @@ public class GlusterVolume extends RawLocalFileSystem{
 
     public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
         File f=pathToFile(file.getPath());
-        BlockLocation[] result=null;
-
-        result=new GlusterFSXattr(f.getPath()).getPathInfo(start, len);
+        BlockLocation[] result = new GlusterFSXattr(f.getPath()).getPathInfo(start, len);
         if(result==null){
-            log.info("Problem getting destination host for file "+f.getPath());
-            return null;
+            log.info("GLUSTERFS: Problem getting host/block location for file "+f.getPath());
         }
-
+        
         return result;
     }
     

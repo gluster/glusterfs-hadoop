@@ -20,17 +20,11 @@
 package org.apache.hadoop.fs.glusterfs;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.annotation.RegEx;
 
 import org.apache.hadoop.fs.BlockLocation;
 
@@ -72,46 +66,33 @@ public class GlusterFSXattr{
     public String execGetFattr() throws IOException{
     	if(xattrValue==null){
 	        xattrValue=shellToString(this.getFattrCmdBase + " " + filename);
-	        
-	        /* strip off 'trusted.glusterfs.pathinfo="  and the last quote*/
-	    	xattrValue = xattrValue.substring(28,xattrValue.length()-1);
     	}
        
     	return xattrValue;
     }
-
-    
     
 	public BlockLocation[] getPathInfo(long start, long len) {
 		String xattr = null;
-		//Pattern blockReg = Pattern.compile("<POSIX([^)]*):([^:]*)");
-		Pattern blockReg = Pattern.compile("<POSIX(.*):((.*)):");
-		ArrayList<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
+		Pattern blockReg = Pattern.compile("<POSIX\\(.*?\\):(.*?):.*?>");
 		try {
 			xattr = execGetFattr();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// problem executing getfattr command, fail gracefully.
 		}
 		
 		Matcher matcher = blockReg.matcher(xattr);
 		ArrayList<String> list = new ArrayList<String>();
 		while(matcher.find()){
-			String host = matcher.group(2);
-			list.add(host);
-			/*
-			for(int i=0;i<matcher.groupCount();i++)
-		    	System.out.println(matcher.group(i));
-			*/
+			list.add(matcher.group(1));
 		}
+		
+		/* no pathinfo found*/
+		if(list.size() == 0)
+			return null;
+			
 		String hosts[] = list.toArray(new String[list.size()]);
-		BlockLocation b = new BlockLocation(null, hosts, start, len);
-		b.setCachedHosts(hosts);
-		blockLocations.add(b);
+		return new BlockLocation[]{ new BlockLocation(null, hosts, start, len) };
 
-		return blockLocations.toArray(new BlockLocation[blockLocations.size()]);
 	}
-
-
     
 }
