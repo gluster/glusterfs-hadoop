@@ -289,10 +289,14 @@ public class GlusterVolume extends RawLocalFileSystem{
 	}
 	
 	public boolean mkdirs(Path f) throws IOException {
-		if(f != null) f = f.makeQualified(this);
-	    return super.mkdirs(f);
+	      if(f == null) {
+	        throw new IllegalArgumentException("mkdirs path arg is null");
+	      }
+	      
+	      f = f.makeQualified(this);
+	      
+	      return super.mkdirs(f);
 	}
-	 
 	  
 	public FileStatus[] listStatus(Path f) throws IOException {
         File localf = pathToFile(f);
@@ -304,7 +308,7 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         if (localf.isFile()) {
           return new FileStatus[] {
-            new GlusterFileStatus(localf, getBlockSize(f), this) };
+            new GlusterFileStatus(localf, getDefaultBlockSize(), this) };
         }
         
         if(localf.isDirectory() && !localf.canRead()){
@@ -355,7 +359,7 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         
         if (path.exists()) {
-          return new GlusterFileStatus(pathToFile(f), this);
+          return new GlusterFileStatus(pathToFile(f), getDefaultBlockSize(), this);
         } else {
           throw new FileNotFoundException( "File " + f + " does not exist.");
         }
