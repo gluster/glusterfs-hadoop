@@ -52,7 +52,7 @@ public class GlusterFileStatus extends FileStatus{
      * This constructor is the only difference than the RawLocalFileStatus impl. RawLocalFileSystem converts a raw file path to path with the same prefix. ends up with a double /mnt/glusterfs.
      */
     GlusterFileStatus(File f, long defaultBlockSize, GlusterVolume fs){
-        super(f.length(), f.isDirectory(), 1, defaultBlockSize, f.lastModified(), fs.fileToPath(f));
+        super(f.length(), f.isDirectory(), 1, defaultBlockSize, fs.trimTimestamp(f.lastModified()), fs.fileToPath(f));
         this.fs=fs;
     }
 

@@ -60,6 +60,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     protected Hashtable<String,String> volumes=new Hashtable<String,String>();
     protected String default_volume = null;
     protected boolean sortDirectoryListing = false;
+    protected int tsPrecisionChop;
     
     protected static GlusterFSXattr attr = null;
     
@@ -195,12 +196,31 @@ public class GlusterVolume extends RawLocalFileSystem{
                 
                 log.info("Directory list order : " + (sortDirectoryListing?"sorted":"fs ordering")) ;
                 
+                /* 
+                 * Chops the specified number of least-significant-digits from the timestamp.
+                 * This will help on systems where clock-skew is higher than it should be.
+                 * 
+                 */
+                
+                tsPrecisionChop=conf.getInt("fs.glusterfs.timestamp.trim", 0);
+                log.info("File timestamp lease significant digits removed : " + tsPrecisionChop) ;
+                
             }
             catch (Exception e){
                 throw new RuntimeException(e);
             }
         }
+    }
         
+    
+ 
+    /* 
+     * truncates the least significant digits of a timestamp. 
+     * 
+     * */
+    public long trimTimestamp(long ts){
+    	long divide = ((long)Math.pow(10, tsPrecisionChop));
+    	return (long) ( (ts / divide)  * divide) ; 
     }
     
     public File pathToFile(Path path) {
