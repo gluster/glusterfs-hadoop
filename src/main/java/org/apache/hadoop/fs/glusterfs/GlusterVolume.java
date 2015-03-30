@@ -113,7 +113,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     public void setConf(Configuration conf){
         log.info("Initializing gluster volume..");
         super.setConf(conf);
-        String getfattrcmd = null;
+        
         if(conf!=null){
          
             try{
@@ -138,12 +138,7 @@ public class GlusterVolume extends RawLocalFileSystem{
                     volumes.put(v[i],vol);
                     log.info("Gluster volume: " + v[i] + " at : " + volumes.get(v[i]));
                 }
-                getfattrcmd = conf.get("fs.glusterfs.getfattrcmd", null);
-                if(getfattrcmd!=null){
-                	attr = new GlusterFSXattr(getfattrcmd);
-                }else{
-                	attr = new GlusterFSXattr();
-                }
+
                 String jtSysDir = conf.get("mapreduce.jobtracker.system.dir", null);
                 Path mapredSysDirectory = null;
                 
@@ -312,6 +307,7 @@ public class GlusterVolume extends RawLocalFileSystem{
 	    }
 	    return FileUtil.fullyDelete(f);
 	}
+	
 	public boolean mkdirs(Path f) throws IOException {
 	      if(f == null) {
 	        throw new IllegalArgumentException("mkdirs path arg is null");
@@ -390,14 +386,7 @@ public class GlusterVolume extends RawLocalFileSystem{
       }
     
     public long getBlockSize(Path path) throws IOException{
-        long blkSz;
-        File f=pathToFile(path);
-
-        blkSz=attr.getBlockSize(f.getPath());
-        if(blkSz==0)
-            blkSz=getLength(path);
-
-        return blkSz;
+    	return getLength(path);
     }
     
     public void setOwner(Path p, String username, String groupname)
@@ -413,14 +402,11 @@ public class GlusterVolume extends RawLocalFileSystem{
 
     public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
         File f=pathToFile(file.getPath());
-        BlockLocation[] result=null;
-
-        result=attr.getPathInfo(f.getPath(), start, len);
+        BlockLocation[] result = new GlusterFSXattr(f.getPath()).getPathInfo(start, len);
         if(result==null){
-            log.info("Problem getting destination host for file "+f.getPath());
-            return null;
+            log.info("GLUSTERFS: Problem getting host/block location for file "+f.getPath());
         }
-
+        
         return result;
     }
     

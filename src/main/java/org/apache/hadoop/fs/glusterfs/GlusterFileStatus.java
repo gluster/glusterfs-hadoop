@@ -56,6 +56,10 @@ public class GlusterFileStatus extends FileStatus{
         this.fs=fs;
     }
 
+    GlusterFileStatus(File f, GlusterVolume fs){
+       this(f,f.length(),fs);
+    }
+    
     @Override
     public FsPermission getPermission(){
         if(!isPermissionLoaded()){
