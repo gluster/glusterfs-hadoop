@@ -26,14 +26,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
@@ -111,9 +109,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     }
     
     public void setConf(Configuration conf){
-        log.info("Initializing gluster volume..");
         super.setConf(conf);
-        
         if(conf!=null){
          
             try{
@@ -136,7 +132,7 @@ public class GlusterVolume extends RawLocalFileSystem{
                         		+ ", No mount point available for the volume.");
                     }
                     volumes.put(v[i],vol);
-                    log.info("Gluster volume: " + v[i] + " at : " + volumes.get(v[i]));
+                    log.info("Volume: " + v[i] + " at : " + volumes.get(v[i]));
                 }
 
                 String jtSysDir = conf.get("mapreduce.jobtracker.system.dir", null);
@@ -149,7 +145,6 @@ public class GlusterVolume extends RawLocalFileSystem{
                 }
                 
                 if(sameVolume(mapredSysDirectory) && !exists(mapredSysDirectory) ){
-                 //   mkdirs(mapredSysDirectory);
                     log.warn("mapred.system.dir/mapreduce.jobtracker.system.dir does not exist: " + mapredSysDirectory);
                 }
                 //Working directory setup
@@ -158,14 +153,13 @@ public class GlusterVolume extends RawLocalFileSystem{
                 if(!sameVolume(workingDirectory)){
                     workingDirectory = new Path("/");
                 }else if( !exists(workingDirectory)){
-                   // mkdirs(workingDirectory);
                     log.warn("working directory does not exist: " + workingDirectory);
                 }
                 
                 setWorkingDirectory(workingDirectory);
                 
                 
-                log.info("Working directory is : "+ getWorkingDirectory());
+                log.info("Working directory: "+ getWorkingDirectory());
 
                 /**
                  * Write Buffering
@@ -198,11 +192,11 @@ public class GlusterVolume extends RawLocalFileSystem{
                  */
                 
                 tsPrecisionChop=conf.getInt("fs.glusterfs.timestamp.trim", 0);
-                log.info("File timestamp lease significant digits removed : " + tsPrecisionChop) ;
+                if(tsPrecisionChop!=0) log.info("Timestamp digit precision : " + tsPrecisionChop) ;
                 
             }
             catch (Exception e){
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error Initializing gluster volume:" + e);
             }
         }
     }
@@ -404,14 +398,14 @@ public class GlusterVolume extends RawLocalFileSystem{
         File f=pathToFile(file.getPath());
         BlockLocation[] result = new GlusterFSXattr(f.getPath()).getPathInfo(start, len);
         if(result==null){
-            log.info("GLUSTERFS: Problem getting host/block location for file "+f.getPath());
+            log.info("Problem getting host/block location for file "+f.getPath());
         }
         
         return result;
     }
     
     public String toString(){
-        return "Gluster volume: " + this.NAME;
+        return "Volume: " + this.NAME;
     }
 
 }
