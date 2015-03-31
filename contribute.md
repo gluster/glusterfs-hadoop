@@ -7,7 +7,7 @@ Community participation is open to those who follow the process.
 
 
 ### Bugs
-Bugs are tracked via Red Hat's Bugzilla tracking tools under the Red Hat Storage component.  To open a bug visit [Red Hat Bugzilla](https://bugzilla.redhat.com/enter_bug.cgi?product=Red%20Hat%20Storage) and select the gluster-hadoop component.
+Bugs are tracked via Red Hat's Bugzilla tracking tools under the gluster-hadoop component of GlusterFS product. To open a bug visit [Red Hat Bugzilla](https://bugzilla.redhat.com/enter_bug.cgi?product=GlusterFS&component=gluster-hadoop) and make sure gluster-hadoop component is selected.
 
 ### Submitting Patches
 To submit a patch to the gluster source repository, use the github.com pull request feature.
