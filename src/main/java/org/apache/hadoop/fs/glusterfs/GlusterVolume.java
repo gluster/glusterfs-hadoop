@@ -29,6 +29,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
@@ -63,7 +64,7 @@ public class GlusterVolume extends RawLocalFileSystem{
     protected int tsPrecisionChop;
     
     protected static GlusterFSXattr attr = null;
-    
+
     public GlusterVolume(){}
     
     public GlusterVolume(Configuration conf){
@@ -328,7 +329,7 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         if (localf.isFile()) {
           return new FileStatus[] {
-            new GlusterFileStatus(localf, getDefaultBlockSize(), this) };
+            new GlusterFileStatus(localf, getBlockSize(f), this) };
         }
         
         if(localf.isDirectory() && !localf.canRead()){
@@ -379,14 +380,20 @@ public class GlusterVolume extends RawLocalFileSystem{
         }
         
         if (path.exists()) {
-          return new GlusterFileStatus(pathToFile(f), getDefaultBlockSize(), this);
+          return new GlusterFileStatus(path, getBlockSize(f), this);
         } else {
           throw new FileNotFoundException( "File " + f + " does not exist.");
         }
       }
     
     public long getBlockSize(Path path) throws IOException{
-    	return getLength(path);
+      File f = pathToFile(path);
+      GlusterFSPathInfo pathInfo = GlusterFSPathInfo.get(f.getPath());
+       long stripeSize = Long.MAX_VALUE;
+       if (pathInfo != null) {
+            stripeSize = pathInfo.getStripeSize(); 
+       } 
+       return Math.min(stripeSize,getDefaultBlockSize());  // Should we use f.length() ?
     }
     
     public void setOwner(Path p, String username, String groupname)
@@ -400,14 +407,33 @@ public class GlusterVolume extends RawLocalFileSystem{
     	super.setPermission(p,permission);
     }
 
-    public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException{
+    public BlockLocation[] getFileBlockLocations(FileStatus file,long start,long len) throws IOException {
+        if (file == null) {
+            return null;
+        }
+
+        if ((start < 0) || (len <= 0)) {                         
+            log.error("Invalid start or len " + start + "," + len);
+            return null;                                          
+        }  
+
+        if (file.getLen() <= start) {
+            return new BlockLocation[0];  
+        }    
+
         File f=pathToFile(file.getPath());
-        BlockLocation[] result = new GlusterFSXattr(f.getPath()).getPathInfo(start, len);
-        if(result==null){
+        GlusterFSPathInfo pathInfo = GlusterFSPathInfo.get(f.getPath());
+
+        if (pathInfo == null) {
+            return null;
+        }
+
+        BlockLocation[] blkLocations = pathInfo.getBlockLocations(start,len);
+        if(blkLocations == null){
             log.info("GLUSTERFS: Problem getting host/block location for file "+f.getPath());
         }
         
-        return result;
+        return blkLocations;
     }
     
     public String toString(){

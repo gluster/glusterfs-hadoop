@@ -28,7 +28,12 @@ import java.util.regex.Pattern;
 
 import org.apache.hadoop.fs.BlockLocation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class GlusterFSXattr{
+
+   static final Logger log = LoggerFactory.getLogger(GlusterFSXattr.class);
 
    private String getFattrCmdBase = null;
    private String filename = null;
@@ -56,43 +61,33 @@ public class GlusterFSXattr{
        brInput=new BufferedReader(new InputStreamReader(p.getInputStream()));
 
        String value="";
-       while ((s=brInput.readLine())!=null)
+       while ((s=brInput.readLine())!=null) {
        	value+=s;
-       
+       }
        return value;
    }
    
     /* Caches the xattr value.  Must call reset() to re-query */
     public String execGetFattr() throws IOException{
     	if(xattrValue==null){
+		log.debug("exec " + this.getFattrCmdBase + " " + filename);
 	        xattrValue=shellToString(this.getFattrCmdBase + " " + filename);
     	}
        
+        log.debug(xattrValue);
     	return xattrValue;
     }
     
-	public BlockLocation[] getPathInfo(long start, long len) {
-		String xattr = null;
-		Pattern blockReg = Pattern.compile("<POSIX\\(.*?\\):(.*?):.*?>");
-		try {
-			xattr = execGetFattr();
-		} catch (IOException e) {
-			// problem executing getfattr command, fail gracefully.
-		}
-		
-		Matcher matcher = blockReg.matcher(xattr);
-		ArrayList<String> list = new ArrayList<String>();
-		while(matcher.find()){
-			list.add(matcher.group(1));
-		}
-		
-		/* no pathinfo found*/
-		if(list.size() == 0)
-			return null;
-			
-		String hosts[] = list.toArray(new String[list.size()]);
-		return new BlockLocation[]{ new BlockLocation(null, hosts, start, len) };
-
-	}
+    public String getPathInfo() {
+	String xattr = null;
+	try {
+		xattr = execGetFattr();
+	} catch (IOException e) {
+                log.error(e.toString());
+		// problem executing getfattr command, fail gracefully.
+		xattr = "";
+	}	
+	return xattr;	
+    }
     
 }
