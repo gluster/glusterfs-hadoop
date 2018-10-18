@@ -41,22 +41,28 @@ public class HcfsMainOperationsBaseTest extends org.apache.hadoop.fs.FSMainOpera
     createFile(getTestRootPath(fSys, "test/hadoop/file"));
     
     Path testSubDir = getTestRootPath(fSys, "test/hadoop/file/subdir");
-    
+
+    boolean thrown = false;
     try{
-    	Assert.assertFalse(fSys.mkdirs(testSubDir));
-    }catch(FileAlreadyExistsException ex){
-    	// catch exception as expected.
+      fSys.mkdirs(testSubDir);
+    }catch(Exception ex){
+      thrown = true;
+      assertParentNotDirectoryException(ex);
     }
+    Assert.assertTrue(thrown);
     
     Assert.assertFalse(exists(fSys, testSubDir));
     
     Path testDeepSubDir = getTestRootPath(fSys, "test/hadoop/file/deep/sub/dir");
     Assert.assertFalse(exists(fSys, testSubDir));
+    thrown = false;
     try{
     	Assert.assertFalse(fSys.mkdirs(testDeepSubDir));
-    }catch(FileAlreadyExistsException ex){
-    	// catch exception as expected.
+    }catch(Exception ex){
+      thrown = true;
+      assertParentNotDirectoryException(ex);
     }
+    Assert.assertTrue(thrown);
     Assert.assertFalse(exists(fSys, testDeepSubDir));
     
   }
@@ -96,5 +102,15 @@ public class HcfsMainOperationsBaseTest extends org.apache.hadoop.fs.FSMainOpera
       return fSys.getWorkingDirectory();
   }
 
+
+  private void assertParentNotDirectoryException(Exception ex) {
+    // Hadoop <=2.5 uses FileAlreadyExistsException (HADOOP-9361)
+    // Hadoop >=2.6 uses ParentNotDirectoryException
+    String errorMsg = "expected FileAlreadyExistsException or ParentNotDirectoryException, got " + ex.getClass().getName();
+    Assert.assertTrue(
+            errorMsg,
+            "org.apache.hadoop.fs.FileAlreadyExistsException".equals(ex.getClass().getName())
+                    || "org.apache.hadoop.fs.ParentNotDirectoryException".equals(ex.getClass().getName()));
+  }
 
 }
