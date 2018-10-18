@@ -44,47 +44,56 @@
 		</repository>
 	</distributionManagement>
 
+	<properties>
+		<hadoop.version>2.3.0</hadoop.version>
+		<hadoop-test.version>1.0.0</hadoop-test.version>
+		<hadoop-common-test.version>0.22.0</hadoop-common-test.version>
+		<slf4j-log4j.version>1.7.3</slf4j-log4j.version>
+		<slf4j-api.version>1.5.8</slf4j-api.version>
+		<junit.version>4.9</junit.version>
+	</properties>
+
 	<dependencies>
 
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-yarn-server-nodemanager</artifactId>
-			<version>2.3.0</version>
+			<version>${hadoop.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.9</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common</artifactId>
-			<version>2.3.0</version>
+			<version>${hadoop.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-common-test</artifactId>
-			<version>0.22.0</version>
+			<version>${hadoop-common-test.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-test</artifactId>
-			<version>1.0.0</version>
+			<version>${hadoop-test.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.5.8</version>
+			<version>${slf4j-api.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.3</version>
+			<version>${slf4j-log4j.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
